@@ -9,13 +9,13 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 class InsertData:
     def __init__(self) -> None:
-        self.db_path = os.path.join(sys.path[0], "Database/urbanmobility.db")
+        self.db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Database', 'urbanmobility.db')
 
     def insert_traveller(self, traveller: Traveller) -> bool:
         try:
             with sqlite3.connect(self.db_path) as connection:
                 query = '''
-                    INSERT OR IGNORE INTO travellers (
+                    INSERT OR REPLACE INTO travellers (
                         TravellerID, FirstName, LastName, Birthday, Gender,
                         StreetName, HouseNumber, ZipCode, City, Email,
                         MobilePhone, DrivingLicenseNumber, RegistrationDate
@@ -31,14 +31,14 @@ class InsertData:
                 ])
             return True
         except Exception as e:
-            print(f"Error inserting traveller: {e}")
+            print(f"Error upserting traveller: {e}")
             return False
 
     def insert_user(self, user: User) -> bool:
         try:
             with sqlite3.connect(self.db_path) as connection:
                 query = '''
-                    INSERT OR IGNORE INTO users (
+                    INSERT OR REPLACE INTO users (
                         UserID, UserName, PasswordHash, 
                         FirstName, LastName, Role, RegistrationDate
                     ) VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -50,14 +50,14 @@ class InsertData:
                 ])
             return True
         except Exception as e:
-            print(f"Error inserting user: {e}")
+            print(f"Error upserting user: {e}")
             return False
 
     def insert_scooter(self, scooter: Scooter) -> bool:
         try:
             with sqlite3.connect(self.db_path) as connection:
                 query = '''
-                    INSERT OR IGNORE INTO scooter (
+                    INSERT OR REPLACE INTO scooter (
                         ScooterID, Brand, Model, SerialNumber, TopSpeed, BatteryCapacity,
                         StateOfCharge, TargetSOCMin, TargetSOCMax,
                         Latitude, Longitude, OutOfServiceStatus, Mileage,
@@ -74,7 +74,7 @@ class InsertData:
                 ])
             return True
         except Exception as e:
-            print(f"Error inserting scooter: {e}")
+            print(f"Error upserting scooter: {e}")
             return False
     
     def insert_log(self, log) -> bool:

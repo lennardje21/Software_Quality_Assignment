@@ -4,12 +4,15 @@ import sqlite3, os, sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 def create_tables():
-    database_dir = os.path.join(sys.path[0], "../Database")
-    database_path = os.path.join(database_dir, "urbanmobility.db")
+    # Get the project root directory
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    database_dir = os.path.join(project_root, 'Database')
+    database_path = os.path.join(database_dir, 'urbanmobility.db')
     
     if not os.path.exists(database_dir):
         os.makedirs(database_dir)
 
+    print(f"Creating database at: {database_path}")  # Debug print
     connection = sqlite3.connect(database_path)
     
     create_travellers_table = '''
