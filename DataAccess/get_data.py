@@ -9,7 +9,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 class GetData:
     def __init__(self):
-        self.db_path = os.path.join(sys.path[0], "Database/urbanmobility.db")
+        self.db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Database', 'urbanmobility.db')
 
     def get_all_user(self) -> list[User]:
         with sqlite3.connect(self.db_path) as connection:

@@ -12,7 +12,6 @@ def create_tables():
     if not os.path.exists(database_dir):
         os.makedirs(database_dir)
 
-    print(f"Creating database at: {database_path}")  # Debug print
     connection = sqlite3.connect(database_path)
     
     create_travellers_table = '''

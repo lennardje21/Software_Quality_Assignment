@@ -5,7 +5,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 class DeleteData:
     def __init__(self):
-        self.db_path = os.path.join(sys.path[0], "Database/urbanmobility.db")
+        self.db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'Database', 'urbanmobility.db')
 
     def delete_user(self, user_id: str) -> bool:
         try:
