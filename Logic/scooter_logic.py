@@ -1,6 +1,9 @@
 # Logic/scooter_logic.py
-
+from DataAccess.get_data import GetData
 from DataModels.user import User
+from DataAccess.insert_data import InsertData
+from DataModels.scooter import Scooter
+
 
 class ScooterLogic:
 
@@ -26,16 +29,39 @@ class ScooterLogic:
             print("Unauthorized action.")
 
     @staticmethod
-    def update_scooter_partial(user: User, scooter_id: int):
+    def update_scooter_partial(user: User, scooter: Scooter):
         if user.is_authorized("service_engineer"):
-            print(f"[ScooterLogic] Updating partial attributes of scooter {scooter_id} (service_engineer)...")
-            # NOTE: later when you implement this, limit the fields allowed for service_engineer
+            insertData = InsertData()
+            insertData.insert_scooter(scooter)
+            return True
         else:
-            print("Unauthorized action.")
+            return False
 
     @staticmethod
-    def search_scooter(user: User):
+    def search_scooter(user: User, search_key: str = None) -> list:
         if user.is_authorized("service_engineer"):
-            print("[ScooterLogic] Searching for scooters...")
+            getData = GetData()
+            return getData.get_scooter_by_partial(search_key)
         else:
-            print("Unauthorized action.")
+            return None
+    
+    @staticmethod
+    def assign_right_types(scooter, field, value):
+        if field == "state_of_charge":
+            scooter.state_of_charge = int(value)
+        elif field == "target_soc_min":
+            scooter.target_soc_min = int(value)
+        elif field == "target_soc_max":
+            scooter.target_soc_max = int(value)
+        elif field == "brand":
+            scooter.brand = value
+        elif field == "model":
+            scooter.model = value
+        elif field == "mileage":
+            scooter.mileage = float(value)
+        elif field == "last_service_date":
+            scooter.last_service_date = value
+        else:
+            return False
+        return scooter
+    

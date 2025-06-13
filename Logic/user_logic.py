@@ -1,6 +1,7 @@
 # Logic/user_logic.py
 
 from DataModels.user import User
+from DataAccess.insert_data import InsertData
 
 class UserLogic:
 
@@ -72,9 +73,10 @@ class UserLogic:
     @staticmethod
     def update_own_password(user: User):
         if user.is_authorized("service_engineer"):
-            print(f"[UserLogic] Updating own password for user {user.id}...")
+            insertData = InsertData()
+            return True
         else:
-            print("Unauthorized action.")
+            return False
 
     # === SUPER ADMIN ONLY ===
 

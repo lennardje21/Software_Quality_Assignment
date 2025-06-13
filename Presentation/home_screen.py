@@ -41,7 +41,7 @@ class HomeScreen:
 
                     if user:
                         if user.role == "service_engineer":
-                            ServiceEngineerScreen.display(user)
+                            ServiceEngineerScreen.home_display(user)
 
                         elif user.role == "system_admin":
                             SystemAdminScreen.display(user)
