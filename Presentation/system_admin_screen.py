@@ -19,7 +19,7 @@ class SystemAdminScreen:
             print("[5] Reset Service Engineer Password")
             print("[6] Update My Profile")
             print("[7] Delete My Account")
-            print("[8] Make Backup (not allowed!)")
+            print("[8] Make Backup")
             print("[9] Restore Backup (with restore code)")
             print("[10] View Logs")
             print("[11] Add Traveller")
@@ -58,7 +58,10 @@ class SystemAdminScreen:
 
             elif choice == "7":
                 UserLogic.delete_own_account(user)
-
+            
+            elif choice == "8":
+                BackupLogic.make_backup(user)
+                
             elif choice == "9":
                 BackupLogic.restore_backup(user)
 

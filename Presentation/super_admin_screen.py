@@ -72,11 +72,11 @@ class SuperAdminScreen:
                 UserLogic.reset_service_engineer_password(user, engineer_id)
 
             elif choice == "10":
-                target_admin_id = int(input("Enter System Admin ID to generate restore code for: "))
+                target_admin_id = str(input("Enter System Admin ID to generate restore code for: "))
                 BackupLogic.generate_restore_code(user, target_admin_id)
 
             elif choice == "11":
-                target_admin_id = int(input("Enter System Admin ID to revoke restore code for: "))
+                target_admin_id = str(input("Enter System Admin ID to revoke restore code for: "))
                 BackupLogic.revoke_restore_code(user, target_admin_id)
 
             elif choice == "12":

@@ -21,6 +21,7 @@ def seed():
         User(f"{uuid.uuid4()}", 'systemadmin', 'systemadminpass', 'System', 'Admin', 'system_admin', '01-04-2024'),
         User(f"{uuid.uuid4()}", 'service', 'servicepass', 'Service', 'Engineer', 'service_engineer', '02-04-2024'),
         User(f"{uuid.uuid4()}", 'super_admin', 'Admin_123?', 'Super', 'Admin', 'super_admin', '03-04-2024'),
+        # User(f"{uuid.uuid4()}", 'systemadmin2', 'systemadminpass', 'System2', 'Admin', 'system_admin', '01-04-2024'),
     ]
 
     scooters = [

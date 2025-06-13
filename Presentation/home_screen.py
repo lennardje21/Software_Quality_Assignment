@@ -1,12 +1,12 @@
 # Presentation/home_screen.py
 
-import sqlite3
 from DataModels.user import User
 from Presentation.service_engineer_screen import ServiceEngineerScreen
 from Presentation.system_admin_screen import SystemAdminScreen
 from Presentation.super_admin_screen import SuperAdminScreen
 
-db_path = 'Database/urbanmobility.db'
+from Logic.login_logic import LoginLogic
+from Logic.log_logic import LogLogic
 
 class HomeScreen:
     MAX_ATTEMPTS = 3
@@ -14,108 +14,62 @@ class HomeScreen:
     @staticmethod
     def display():
         failed_attempts = 0
-        print("\nWelcome to the Urban Mobility Backend System!\n")
-        
+        failed_usernames = []
+
+        print("\n=== Welcome to the Urban Mobility Backend System ===\n")
+
         while True:
             if failed_attempts >= HomeScreen.MAX_ATTEMPTS:
-                print("\nToo many failed login attempts. The program is locked.")
+                print("\n❌ Too many failed login attempts. The system is now locked.")
+                attempted_users = ", ".join(set(failed_usernames)) or "unknown"
+                LogLogic.add_log_to_database(
+                    username=attempted_users,
+                    action="Login Lockout",
+                    description=f"Too many failed login attempts. Usernames tried: {attempted_users}",
+                    suspicious="Yes"
+                )
                 break
 
             print("\nMain Menu:")
             print("[1] Login")
             print("[2] Exit program")
-            userInput = input("Choose an option: ")
+            userInput = input("Choose an option: ").strip()
 
             if userInput == "1":
-                username = input("\nUsername: ")
-                password = input("Password: ")
+                username = input("\nUsername: ").strip()
+                password = input("Password: ").strip()
 
-                role = HomeScreen.simulate_authentication(username, password)
+                user = LoginLogic.get_user_object(username, password)
 
-                if role:
-                    print(f"\nLogin successful! Logged in as {role}.\n")
-                    failed_attempts = 0  # reset attempts
+                if user:
+                    print(f"\n✅ Login successful! Logged in as {user.role}.\n")
+                    failed_attempts = 0
+                    failed_usernames.clear()
 
-                    # Build User object
-                    user = HomeScreen.get_user_object(username, password)
+                    LogLogic.add_log_to_database(
+                        username=user.username,
+                        action="Login",
+                        description="Successful login",
+                        suspicious="No"
+                    )
 
-                    if user:
-                        if user.role == "service_engineer":
-                            ServiceEngineerScreen.display(user)
-
-                        elif user.role == "system_admin":
-                            SystemAdminScreen.display(user)
-
-                        elif user.role == "super_admin":
-                            SuperAdminScreen.display(user)
-
-                        else:
-                            print(f"Unknown role: {user.role}")
+                    if user.role == "service_engineer":
+                        ServiceEngineerScreen.display(user)
+                    elif user.role == "system_admin":
+                        SystemAdminScreen.display(user)
+                    elif user.role == "super_admin":
+                        SuperAdminScreen.display(user)
                     else:
-                        print("Error loading user data.")
+                        print(f"⚠️ Unknown role: {user.role}")
 
                 else:
                     failed_attempts += 1
+                    failed_usernames.append(username)
                     remaining = HomeScreen.MAX_ATTEMPTS - failed_attempts
-                    print(f"\nInvalid username or password. Attempts left: {remaining}")
+                    print(f"\n❌ Invalid username or password. Attempts left: {remaining}")
 
             elif userInput == "2":
-                print("\nGoodbye!")
+                print("\n👋 Goodbye!")
                 break
-
             else:
-                print("\nInvalid option, please try again.")
-
-    # temp function
-    @staticmethod
-    def simulate_authentication(username, password):
-
-        connection = sqlite3.connect(db_path)
-        cursor = connection.cursor()
-
-        query = '''
-        SELECT Role
-        FROM users
-        WHERE UserName = ? AND PasswordHash = ?
-        '''
-
-        cursor.execute(query, (username, password))
-        row = cursor.fetchone()
-
-        connection.close()
-
-        if row:
-            # row[0] is Role
-            return row[0]
-        else:
-            return None
-
-    # temp function
-    @staticmethod
-    def get_user_object(username, password):
-        connection = sqlite3.connect(db_path)
-        cursor = connection.cursor()
-
-        query = '''
-        SELECT UserID, UserName, PasswordHash, FirstName, LastName, Role, RegistrationDate
-        FROM users
-        WHERE UserName = ? AND PasswordHash = ?
-        '''
-
-        cursor.execute(query, (username, password))
-        row = cursor.fetchone()
-
-        connection.close()
-
-        if row:
-            return User(
-                id=row[0],
-                username=row[1],
-                password_hash=row[2],
-                first_name=row[3],
-                last_name=row[4],
-                role=row[5],
-                registration_date=row[6]
-            )
-        else:
-            return None
+                print("\nInvalid option. Please try again.")
