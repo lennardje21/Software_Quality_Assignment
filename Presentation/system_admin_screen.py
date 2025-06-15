@@ -7,6 +7,7 @@ from Logic.log_logic import LogLogic
 from Presentation.scooter_display_methods import scooter_display_methods
 from Presentation.general_shared_methods import general_shared_methods
 from Presentation.user_display_methods import user_display_methods
+from Presentation.engineer_display_methods import engineer_display_methods
 import time
 
 class SystemAdminScreen:
@@ -38,6 +39,7 @@ class SystemAdminScreen:
             print("[18] Search Scooter")
             print("[19] Change My Password")
             print("[20] Logout")
+            print("----------------------------------------------------------------------------")
 
             #NOTE INPUT FIELD
             choice = input("Choose an option: ")
@@ -51,15 +53,22 @@ class SystemAdminScreen:
                 time.sleep(1)
 
             elif choice == "2":
-                UserLogic.add_service_engineer(user)
+                exit = engineer_display_methods.display_add_engineer(user)
+                general_shared_methods.clear_console()
+                print("Returning to menu...")
+                time.sleep(1.5)
 
             elif choice == "3":
-                engineer_id = int(input("Enter Service Engineer ID to modify: "))
-                UserLogic.modify_service_engineer(user, engineer_id)
+                exit = engineer_display_methods.display_update_engineer(user)
+                general_shared_methods.clear_console()
+                print("Returning to menu...")
+                time.sleep(1.5)
 
             elif choice == "4":
-                engineer_id = int(input("Enter Service Engineer ID to delete: "))
-                UserLogic.delete_service_engineer(user, engineer_id)
+                exit = engineer_display_methods.display_delete_engineer(user)
+                general_shared_methods.clear_console()
+                print("Returning to menu...")
+                time.sleep(1.5)
 
             elif choice == "5":
                 engineer_id = int(input("Enter Service Engineer ID to reset password: "))
@@ -128,6 +137,8 @@ class SystemAdminScreen:
 
             elif choice == "20":
                 print("\nLogging out...")
+                general_shared_methods.clear_console()
+                time.sleep(1)
                 break
 
             else:

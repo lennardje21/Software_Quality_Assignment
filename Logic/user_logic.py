@@ -3,6 +3,8 @@
 from DataModels.user import User
 from DataAccess.insert_data import InsertData
 from DataAccess.get_data import GetData
+from DataAccess.delete_data import DeleteData
+import uuid, time
 
 class UserLogic:
 
@@ -17,25 +19,60 @@ class UserLogic:
             return False
 
     @staticmethod
-    def add_service_engineer(user: User):
+    def create_service_engineer_object(user: User, username, password, first_name, last_name):
         if user.is_authorized("system_admin"):
-            print("[UserLogic] Adding service_engineer...")
+            user_id = str(uuid.uuid4())
+            registration_date = time.strftime("%Y-%m-%d")
+            #NOTE HASH PASSWORD
+            new_engineer = User(user_id, username, password, first_name, last_name, "service_engineer", registration_date)
+            return new_engineer
         else:
-            print("Unauthorized action.")
+            return False
 
     @staticmethod
-    def modify_service_engineer(user: User, engineer_id: int):
+    def add_service_engineer(user: User, engineer: User):
         if user.is_authorized("system_admin"):
-            print(f"[UserLogic] Modifying service_engineer {engineer_id}...")
+            insertData = InsertData()
+            insertData.insert_user(engineer)
+            return True
         else:
-            print("Unauthorized action.")
+            return False
 
     @staticmethod
-    def delete_service_engineer(user: User, engineer_id: int):
+    def modify_service_engineer(user: User, engineer: User):
         if user.is_authorized("system_admin"):
-            print(f"[UserLogic] Deleting service_engineer {engineer_id}...")
+            insertData = InsertData()
+            insertData.insert_user(engineer)
+            return True
         else:
-            print("Unauthorized action.")
+            return False
+
+    @staticmethod
+    def delete_service_engineer(user: User, engineer_id: str):
+        if user.is_authorized("system_admin"):
+            deleteData = DeleteData()
+            deleteData.delete_user(engineer_id)
+            return True
+        else:
+            return False
+
+    @staticmethod
+    def get_service_engineer_by_id(user: User, engineer_id: str):
+        if user.is_authorized("system_admin"):
+            getData = GetData()
+            return getData.get_user_by_id(engineer_id)
+        else:
+            return None
+
+    @staticmethod
+    def search_service_engineers(user: User, search_key: str = None):
+        if user.is_authorized("system_admin"):
+            getData = GetData()
+            all_users = getData.get_user_by_partial(search_key)
+            engineers = [user for user in all_users if user.role == "service_engineer"]
+            return engineers
+        else:
+            return None
 
     @staticmethod
     def reset_service_engineer_password(user: User, engineer_id: int):

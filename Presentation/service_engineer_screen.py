@@ -19,6 +19,8 @@ class ServiceEngineerScreen:
             print("[2] Search for Scooter")
             print("[3] Change My Password")
             print("[4] Logout")
+            print("----------------------------------------------------------------------------")
+
             #NOTE INPUT FIELD
             choice = input("Choose an option: ")
             general_shared_methods.clear_console()
@@ -53,6 +55,8 @@ class ServiceEngineerScreen:
                 user_display_methods.display_update_password(user)
             elif choice == "4":
                 print("\nLogging out...")
+                general_shared_methods.clear_console()
+                time.sleep(1)
                 break
 
             else:

@@ -80,6 +80,7 @@ class scooter_display_methods:
 
     @staticmethod
     def display_update_scooter(user):
+        #Scooter zoeken
         while True:
             scooters = scooter_display_methods.search_scooter_display(user, update_call=True)
             if scooters is True:
@@ -87,6 +88,7 @@ class scooter_display_methods:
             if scooters is False:
                 continue 
             
+            #Scooter id invoeren
             print("----------------------------------------------------------------------------")
             #NOTE INPUT FIELD
             scooter_id = input("Enter scooter ID number to update (or type 'exit' to cancel): #").strip()
@@ -99,13 +101,15 @@ class scooter_display_methods:
                 print("Scooter ID cannot be empty. Please try again.")
                 time.sleep(1.5)
                 continue
-
+                
+            #Scooter uit Db pakken
             scooter = ScooterLogic.find_scooter_by_id(scooters, scooter_id)
             if scooter is None:
                 print(f"No scooter found with ID {scooter_id}. Please try again.")
                 time.sleep(2)
                 continue
-
+                
+            #User rol bekijken
             if user.role == "service_engineer":
                 while True:
                     exit_update = scooter_display_methods.partial_update_scooter_display(scooter, user)
@@ -193,7 +197,7 @@ class scooter_display_methods:
             print(f"Updated {field.replace('_', ' ').title()} for scooter {scooter.id}.")
             time.sleep(2)
             general_shared_methods.clear_console()
-            return False  # Return to previous menu after one update
+            return False
 
     @staticmethod
     def display_delete_scooter(user):

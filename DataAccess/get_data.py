@@ -105,3 +105,23 @@ class GetData:
                 Scooter(*row) for row in rows
             ]
 
+    def get_user_by_partial(self, search_key: str) -> list[User]:
+        with sqlite3.connect(self.db_path) as connection:
+            query = '''
+                SELECT *
+                FROM users
+                WHERE
+                    LOWER(UserID) LIKE LOWER(?) OR
+                    LOWER(UserName) LIKE LOWER(?) OR
+                    LOWER(FirstName) LIKE LOWER(?) OR
+                    LOWER(LastName) LIKE LOWER(?) OR
+                    LOWER(Role) LIKE LOWER(?)
+            '''
+            cursor = connection.cursor()
+            search_pattern = f"%{search_key.lower()}%"
+            params = [search_pattern] * 5
+            cursor.execute(query, params)
+            rows = cursor.fetchall()
+            return [
+                User(*row) for row in rows
+            ]

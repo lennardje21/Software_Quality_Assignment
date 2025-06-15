@@ -36,21 +36,38 @@ class user_display_methods:
         return None
 
     @staticmethod
-    def display_user(user, search_key=None):
+    def display_user(user, search_key=None, current_user=None):
         if search_key is not None:
+            # The search display logic (keep this as is)
             print(f"User ID:           {general_shared_methods.highlight(user.id, search_key)}")
             print(f"Username:          {general_shared_methods.highlight(user.username, search_key)}")
             print(f"Name:              {general_shared_methods.highlight(user.first_name, search_key)} {general_shared_methods.highlight(user.last_name, search_key)}")
             print(f"Role:              {general_shared_methods.highlight(user.role, search_key)}")
             print(f"Registration Date: {general_shared_methods.highlight(user.registration_date, search_key)}")
         else:
-            #Voor users editen
-            print("Not implemented yet.")
+            is_editable = False
+            role_editable = False
+            
+            if current_user:
+                from DataModels.user import ROLES_HIERARCHY
+                viewer_role_level = ROLES_HIERARCHY.get(current_user.role, 0)
+                user_role_level = ROLES_HIERARCHY.get(user.role, 0)
+                is_editable = viewer_role_level > user_role_level
+                role_editable = current_user.role == "super_admin" and is_editable
+            
+            editable_tag = "[Editable]" if is_editable else ""
+            role_editable_tag = "[Editable]" if role_editable else ""
+            
+            print(f"User ID:           {user.id}")
+            print(f"Username:          {user.username:<25}{editable_tag:>12}")
+            print(f"First Name:        {user.first_name:<25}{editable_tag:>12}")
+            print(f"Last Name:         {user.last_name:<25}{editable_tag:>12}")
+            print(f"Role:              {user.role:<25}{role_editable_tag:>12}")
+            print(f"Registration Date: {user.registration_date}")
+            
     
     @staticmethod
-    def display_update_password(user):
-        from Logic.user_logic import UserLogic
-        
+    def display_update_password(user):        
         general_shared_methods.clear_console()
         print("----------------------------------------------------------------------------")
         print("|" + "Update Password".center(75) + "|")
