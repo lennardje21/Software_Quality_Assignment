@@ -11,7 +11,7 @@ class GetData:
     def __init__(self):
         self.db_path = os.path.join(sys.path[0], "Database/urbanmobility.db")
     
-    def get_all_user(self) -> list[User]:
+    def get_all_users(self) -> list[User]:
         with sqlite3.connect(self.db_path) as connection:
             query = ''' SELECT *
                         FROM users'''
@@ -22,7 +22,7 @@ class GetData:
                 User(*row) for row in rows
             ]
     
-    def get_all_traveller(self) -> list[Traveller]:
+    def get_all_travellers(self) -> list[Traveller]:
         with sqlite3.connect(self.db_path) as connection:
             query = ''' SELECT *
                         FROM travellers'''
@@ -33,7 +33,7 @@ class GetData:
                 Traveller(*row) for row in rows
             ]
     
-    def get_all_scooter(self) -> list[Scooter]:
+    def get_all_scooters(self) -> list[Scooter]:
         with sqlite3.connect(self.db_path) as connection:
             query = ''' SELECT *
                         FROM scooter'''

@@ -2,6 +2,7 @@
 
 from DataModels.user import User
 from DataAccess.insert_data import InsertData
+from DataAccess.get_data import GetData
 
 class UserLogic:
 
@@ -10,9 +11,10 @@ class UserLogic:
     @staticmethod
     def check_users(user: User):
         if user.is_authorized("system_admin"):
-            print("[UserLogic] Checking list of users and roles...")
+            getData = GetData()
+            return getData.get_all_users()
         else:
-            print("Unauthorized action.")
+            return False
 
     @staticmethod
     def add_service_engineer(user: User):
