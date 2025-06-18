@@ -67,15 +67,62 @@ class user_display_methods:
             
     
     @staticmethod
-    def display_update_password(user):        
+    def display_update_password(user):     
         general_shared_methods.clear_console()
+        if user_display_methods.verify_identity(user) is None:
+            return
+        while True:
+            general_shared_methods.clear_console()
+            print("----------------------------------------------------------------------------")
+            print("|" + "Update Password".center(75) + "|")
+            print("----------------------------------------------------------------------------")
+            #NOTE INPUT FIELD
+            new_password = input("Enter your new password: ").strip()
+            
+            passed, error_msg = UserLogic.check_password_requirements(new_password)
+
+            if not passed:
+                general_shared_methods.clear_console()
+                print(error_msg)
+                time.sleep(2)
+                continue
+            print("----------------------------------------------------------------------------")
+            new_password_confirm = input("Confirm your new password: ").strip()
+            general_shared_methods.clear_console()
+            if new_password != new_password_confirm:
+                print("Passwords do not match. Please try again.")
+                time.sleep(2)
+                continue
+
+            else:
+                general_shared_methods.clear_console()
+                print("Updating your password...")
+                hashed_password = UserLogic.hash_password(new_password)
+                UserLogic.update_own_password(user, hashed_password )
+                time.sleep(1.5)
+                general_shared_methods.clear_console()
+                print("Your password has been successfully updated.")
+                time.sleep(1.5)
+                break
+
+    @staticmethod
+    def verify_identity(user):
+        print("To verify your identity, please enter your current password")
         print("----------------------------------------------------------------------------")
-        print("|" + "Update Password".center(75) + "|")
-        print("----------------------------------------------------------------------------")
+        #NOTE INPUT FIELD MOET NOG STERRETJES ZIJN
+        input_password = input("Current Password: ").strip()
+        general_shared_methods.clear_console()
+        print("Verifying your identity...")
+        time.sleep(1.5)
+        general_shared_methods.clear_console()
+
+        verified = UserLogic.verify_password(user.password_hash, input_password)
+        if not verified:
+            print("Incorrect password. Returning to menu...")
+            time.sleep(2)
+            return
         
-        #NOTE INPUT FIELD
-        new_password = input("Enter your new password: ").strip()
-        general_shared_methods.clear_console()
-        print("Not implemented yet.")
+        print("Identity verified. You can now update your password.")
         time.sleep(1)
-        return
+        general_shared_methods.clear_console()
+        return True

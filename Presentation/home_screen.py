@@ -5,6 +5,8 @@ from DataModels.user import User
 from Presentation.service_engineer_screen import ServiceEngineerScreen
 from Presentation.system_admin_screen import SystemAdminScreen
 from Presentation.super_admin_screen import SuperAdminScreen
+from Logic.user_logic import UserLogic
+
 
 db_path = 'Database/urbanmobility.db'
 
@@ -29,7 +31,7 @@ class HomeScreen:
             if userInput == "1":
                 username = input("\nUsername: ")
                 password = input("Password: ")
-
+                password = UserLogic.hash_password(password)  # Hash the password for security
                 role = HomeScreen.simulate_authentication(username, password)
 
                 if role:

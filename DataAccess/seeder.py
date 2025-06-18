@@ -2,6 +2,7 @@ from DataAccess.insert_data import InsertData
 from DataModels.traveller import Traveller
 from DataModels.user import User
 from DataModels.scooter import Scooter
+from Logic.user_logic import UserLogic
 #from DataModels.log import Log # nog niet gebruikt
 import os, sys
 import uuid
@@ -18,9 +19,9 @@ def seed():
 
     # Nog geen password hash en super admin moet hard coded zijn zoals if username.lower() == 'super_admin' and password == 'Admin_123?':
     users = [
-        User(f"{uuid.uuid4()}", 'systemadmin', 'systemadminpass', 'System', 'Admin', 'system_admin', '01-04-2024'),
-        User(f"{uuid.uuid4()}", 'service', 'servicepass', 'Service', 'Engineer', 'service_engineer', '02-04-2024'),
-        User(f"{uuid.uuid4()}", 'super_admin', 'Admin_123?', 'Super', 'Admin', 'super_admin', '03-04-2024'),
+        User(f"{uuid.uuid4()}", 'systemadmin', UserLogic.hash_password('systemadminpass'), 'System', 'Admin', 'system_admin', '01-04-2024'),
+        User(f"{uuid.uuid4()}", 'service', UserLogic.hash_password('servicepass'), 'Service', 'Engineer', 'service_engineer', '02-04-2024'),
+        User(f"{uuid.uuid4()}", 'super_admin', UserLogic.hash_password('Admin_123?'), 'Super', 'Admin', 'super_admin', '03-04-2024'),
     ]
 
     scooters = [

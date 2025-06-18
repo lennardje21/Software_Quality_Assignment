@@ -8,6 +8,7 @@ from Presentation.scooter_display_methods import scooter_display_methods
 from Presentation.general_shared_methods import general_shared_methods
 from Presentation.user_display_methods import user_display_methods
 from Presentation.engineer_display_methods import engineer_display_methods
+from Presentation.admin_display_methods import admin_display_methods
 import time
 
 class SuperAdminScreen:
@@ -56,15 +57,22 @@ class SuperAdminScreen:
                 time.sleep(1)
 
             elif choice == "2":
-                UserLogic.add_system_admin(user)
+                exit = admin_display_methods.display_add_admin(user)
+                general_shared_methods.clear_console()
+                print("Returning to menu...")
+                time.sleep(1.5)
 
             elif choice == "3":
-                admin_id = int(input("Enter System Admin ID to modify: "))
-                UserLogic.modify_system_admin(user, admin_id)
+                exit = admin_display_methods.display_update_admin(user)
+                general_shared_methods.clear_console()
+                print("Returning to menu...")
+                time.sleep(1.5)
 
             elif choice == "4":
-                admin_id = int(input("Enter System Admin ID to delete: "))
-                UserLogic.delete_system_admin(user, admin_id)
+                exit = admin_display_methods.display_delete_admin(user)
+                general_shared_methods.clear_console()
+                print("Returning to menu...")
+                time.sleep(1.5)
 
             elif choice == "5":
                 admin_id = int(input("Enter System Admin ID to reset password: "))
