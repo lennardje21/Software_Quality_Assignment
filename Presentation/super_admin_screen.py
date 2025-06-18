@@ -1,17 +1,28 @@
 # Presentation/super_admin_screen.py
 
 from Logic.user_logic import UserLogic
-from Logic.scooter_logic import ScooterLogic
 from Logic.traveller_logic import TravellerLogic
 from Logic.backup_logic import BackupLogic
 from Logic.log_logic import LogLogic
+from Presentation.traveller_display_methods import traveller_display_methods
+from Presentation.backup_display_methods import backup_display_methods
+from Presentation.log_display_methods import log_display_methods
+from Presentation.scooter_display_methods import scooter_display_methods
+from Presentation.general_shared_methods import general_shared_methods
+from Presentation.user_display_methods import user_display_methods
+from Presentation.engineer_display_methods import engineer_display_methods
+import time
 
 class SuperAdminScreen:
 
     @staticmethod
     def display(user):
         while True:
-            print("\nSuper Administrator Menu")
+            general_shared_methods.clear_console()
+
+            print("----------------------------------------------------------------------------")
+            print("|" + "Super Admin Menu".center(75) + "|")
+            print("----------------------------------------------------------------------------")
             print("[1] Check Users and Roles")
             print("[2] Add System Administrator")
             print("[3] Modify System Administrator")
@@ -35,11 +46,17 @@ class SuperAdminScreen:
             print("[21] Delete Scooter")
             print("[22] Search Scooter")
             print("[23] Logout")
+            print("----------------------------------------------------------------------------")
 
+            #NOTE INPUT FIELD
             choice = input("Choose an option: ")
 
+            exit = False
             if choice == "1":
-                UserLogic.check_users(user)
+                exit = user_display_methods.display_check_users(user)
+                general_shared_methods.clear_console()
+                print("Returning to menu...")
+                time.sleep(1)
 
             elif choice == "2":
                 UserLogic.add_system_admin(user)
@@ -57,67 +74,116 @@ class SuperAdminScreen:
                 UserLogic.reset_system_admin_password(user, admin_id)
 
             elif choice == "6":
-                UserLogic.add_service_engineer(user)
+                exit = engineer_display_methods.display_add_engineer(user)
+                general_shared_methods.clear_console()
+                print("Returning to menu...")
+                time.sleep(1.5)
 
             elif choice == "7":
-                engineer_id = int(input("Enter Service Engineer ID to modify: "))
-                UserLogic.modify_service_engineer(user, engineer_id)
+                exit = engineer_display_methods.display_update_engineer(user)
+                general_shared_methods.clear_console()
+                print("Returning to menu...")
+                time.sleep(1.5)
 
             elif choice == "8":
-                engineer_id = int(input("Enter Service Engineer ID to delete: "))
-                UserLogic.delete_service_engineer(user, engineer_id)
+                exit = engineer_display_methods.display_delete_engineer(user)
+                general_shared_methods.clear_console()
+                print("Returning to menu...")
+                time.sleep(1.5)
 
             elif choice == "9":
                 engineer_id = int(input("Enter Service Engineer ID to reset password: "))
                 UserLogic.reset_service_engineer_password(user, engineer_id)
 
             elif choice == "10":
-                target_admin_id = str(input("Enter System Admin ID to generate restore code for: "))
-                BackupLogic.generate_restore_code(user, target_admin_id)
+                exit = backup_display_methods.display_generate_restore_code(user)
+                general_shared_methods.clear_console()
+                print("Returning to menu...")
+                time.sleep(1.5)
 
             elif choice == "11":
-                target_admin_id = str(input("Enter System Admin ID to revoke restore code for: "))
-                BackupLogic.revoke_restore_code(user, target_admin_id)
+                exit = backup_display_methods.display_revoke_restore_code(user)
+                general_shared_methods.clear_console()
+                print("Returning to menu...")
+                time.sleep(1.5)
 
             elif choice == "12":
-                BackupLogic.make_backup(user)
+                exit = backup_display_methods.display_create_backup(user)
+                general_shared_methods.clear_console()
+                print("Returning to menu...")
+                time.sleep(1.5)
 
             elif choice == "13":
-                BackupLogic.restore_backup(user)
+                exit = backup_display_methods.display_restore_backup(user)
+                general_shared_methods.clear_console()
+                print("Returning to menu...")
+                time.sleep(1.5)
 
             elif choice == "14":
-                LogLogic.view_logs(user)
+                exit = log_display_methods.display_all_logs(user)
+                general_shared_methods.clear_console()
+                print("Returning to menu...")
+                time.sleep(1.5)
 
             elif choice == "15":
-                TravellerLogic.add_traveller(user)
+                exit = traveller_display_methods.display_add_traveller(user)
+                general_shared_methods.clear_console()
+                print("Returning to menu...")
+                time.sleep(1.5)
 
             elif choice == "16":
-                traveller_id = int(input("Enter Traveller ID to modify: "))
-                TravellerLogic.modify_traveller(user, traveller_id)
+                exit = traveller_display_methods.display_update_traveller(user)
+                general_shared_methods.clear_console()
+                print("Returning to menu...")
+                time.sleep(1.5)
 
             elif choice == "17":
-                traveller_id = int(input("Enter Traveller ID to delete: "))
-                TravellerLogic.delete_traveller(user, traveller_id)
+                exit = traveller_display_methods.display_delete_traveller(user)
+                general_shared_methods.clear_console()
+                print("Returning to menu...")
+                time.sleep(1.5)
 
             elif choice == "18":
-                TravellerLogic.search_traveller(user)
+                exit = traveller_display_methods.display_search_traveller(user)
+                general_shared_methods.clear_console()
+                print("Returning to menu...")
+                time.sleep(1.5)
 
             elif choice == "19":
-                ScooterLogic.add_scooter(user)
+                exit = scooter_display_methods.display_add_scooter(user)
+                general_shared_methods.clear_console()
+                print("Returning to menu...")
+                time.sleep(1.5)
 
             elif choice == "20":
-                scooter_id = int(input("Enter Scooter ID to modify: "))
-                ScooterLogic.modify_scooter(user, scooter_id)
+                exit = scooter_display_methods.display_update_scooter(user)
+                general_shared_methods.clear_console()
+                print("Returning to menu...")
+                time.sleep(1.5)
 
             elif choice == "21":
-                scooter_id = int(input("Enter Scooter ID to delete: "))
-                ScooterLogic.delete_scooter(user, scooter_id)
+                exit = scooter_display_methods.display_delete_scooter(user)
+                general_shared_methods.clear_console()
+                print("Returning to menu...")
+                time.sleep(1.5)
 
             elif choice == "22":
-                ScooterLogic.search_scooter(user)
+                while True:
+                    exit = scooter_display_methods.search_scooter_display(user)
+                    if exit is True:
+                        break
+                    elif exit is None:
+                        input("\nPress Enter to continue...")
+                        break
+                
+                general_shared_methods.clear_console()
+                print("Returning to menu...")
+                time.sleep(1.5)
 
             elif choice == "23":
                 print("\nLogging out...")
+                general_shared_methods.clear_console()
+                time.sleep(1)
                 break
 
             else:

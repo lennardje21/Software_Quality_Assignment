@@ -1,77 +1,37 @@
 # Logic/log_logic.py
 
-import sqlite3
 from datetime import datetime
+from DataAccess.insert_data import InsertData
+from DataAccess.get_data import GetData
 from DataModels.user import User
 
-DB_PATH = 'Database/urbanmobility.db'
 
 class LogLogic:
 
     @staticmethod
-    def add_log_to_database(username: str, action: str, description: str, suspicious: str = "No"):
+    def add_log_to_database(username: str, action: str, description: str, suspicious: str = "No") -> bool:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-        conn = sqlite3.connect(DB_PATH)
-        cur = conn.cursor()
-        cur.execute("""
-            INSERT INTO logs (username, action, description, suspicious, seen, timestamp)
-            VALUES (?, ?, ?, ?, 'No', ?)
-        """, (username, action, description, suspicious, timestamp))
-        conn.commit()
-        conn.close()
+        insert = InsertData()
+        try:
+            insert.insert_log_entry(username, action, description, suspicious, timestamp)
+            return True
+        except Exception as e:
+            print(f"Log insert failed: {e}")
+            return False
 
     @staticmethod
-    def view_logs(user: User):
-        if user.is_authorized("system_admin"):
-            conn = sqlite3.connect(DB_PATH)
-            cur = conn.cursor()
-            cur.execute("SELECT id, username, action, description, suspicious, seen, timestamp FROM logs ORDER BY id DESC")
-            rows = cur.fetchall()
-            conn.close()
-
-            if not rows:
-                print("No logs found.")
-            else:
-                print("\n=== All Logs ===")
-                for row in rows:
-                    print(f"[{row[6]}] {row[1]} - {row[2]} - {row[3]} | Suspicious: {row[4]}, Seen: {row[5]}")
-
-        else:
-            print("Unauthorized action.")
-
-        LogLogic.pause()
+    def get_all_logs(user: User) -> list[dict]:
+        if not user.is_authorized("system_admin"):
+            return []
+        get = GetData()
+        return get.get_all_logs()
 
     @staticmethod
-    def view_unread_suspicious_logs(user: User):
-        if user.is_authorized("system_admin"):
-            conn = sqlite3.connect(DB_PATH)
-            cur = conn.cursor()
-            cur.execute("""
-                SELECT id, username, action, description, timestamp
-                FROM logs
-                WHERE suspicious = 'Yes' AND seen = 'No'
-                ORDER BY id DESC
-            """)
-            rows = cur.fetchall()
-
-            if not rows:
-                print("No unread suspicious logs found.")
-            else:
-                print("\n=== Unread Suspicious Logs ===")
-                for row in rows:
-                    print(f"[{row[4]}] {row[1]} - {row[2]} - {row[3]}")
-
-                # Mark them as seen
-                ids = [str(row[0]) for row in rows]
-                cur.execute(f"UPDATE logs SET seen = 'Yes' WHERE id IN ({','.join(ids)})")
-                conn.commit()
-
-            conn.close()
-        else:
-            print("Unauthorized action.")
-        LogLogic.pause()
-
-    @staticmethod
-    def pause():
-        input("\nPress Enter to return to the menu...\n")
+    def get_unread_suspicious_logs(user: User) -> list[dict]:
+        if not user.is_authorized("system_admin"):
+            return []
+        get = GetData()
+        logs = get.get_unread_suspicious_logs()
+        if logs:
+            get.mark_logs_as_seen([log["id"] for log in logs])
+        return logs
