@@ -1,5 +1,6 @@
 # Presentation/traveller_display_methods.py
 
+from Helpers.input_validators import InputValidators
 from Logic.traveller_logic import TravellerLogic
 from DataModels.traveller import Traveller
 from Presentation.general_shared_methods import general_shared_methods
@@ -46,16 +47,72 @@ class traveller_display_methods:
 
     @staticmethod
     def display_add_traveller(user):
+        from Helpers.input_prompters import InputPrompters
+        from Helpers.input_validators import InputValidators
+        import uuid
+        import datetime
+
         general_shared_methods.clear_console()
         print("----------------------------------------------------------------------------")
         print("|" + "Add New Traveller".center(75) + "|")
         print("----------------------------------------------------------------------------")
 
-        traveller = TravellerLogic.create_traveller_from_input()
-        if traveller is None:
-            print("Traveller creation cancelled.")
-            time.sleep(1.5)
-            return False
+        print("Type 'exit' at any prompt to cancel.")
+
+        def prompt(field_name, validator, error_msg, *args):
+            return InputPrompters.prompt_until_valid(
+                f"{field_name}: ", validator, error_msg, *args
+            )
+
+        first_name = prompt("First Name", InputValidators.validate_name, "Invalid first name.")
+        if first_name is None: return traveller_display_methods._cancel_add()
+
+        last_name = prompt("Last Name", InputValidators.validate_name, "Invalid last name.")
+        if last_name is None: return traveller_display_methods._cancel_add()
+
+        birthday = prompt("Birthday (YYYY-MM-DD)", InputValidators.validate_birthday, "Invalid date format.")
+        if birthday is None: return traveller_display_methods._cancel_add()
+
+        gender = prompt("Gender (male/female)", InputValidators.validate_gender, "Invalid gender.")
+        if gender is None: return traveller_display_methods._cancel_add()
+
+        street = prompt("Street Name", InputValidators.validate_street_name, "Invalid street name.")
+        if street is None: return traveller_display_methods._cancel_add()
+
+        house_number = prompt("House Number", InputValidators.validate_house_number, "Invalid house number.")
+        if house_number is None: return traveller_display_methods._cancel_add()
+
+        zip_code = prompt("Zip Code", InputValidators.validate_zipcode, "Invalid zip code.")
+        if zip_code is None: return traveller_display_methods._cancel_add()
+
+        city = traveller_display_methods.prompt_city_selection()
+        if city is None: return traveller_display_methods._cancel_add()
+
+        email = prompt("Email", InputValidators.validate_email, "Invalid email.")
+        if email is None: return traveller_display_methods._cancel_add()
+
+        mobile = prompt("Mobile Phone (8 digits)", InputValidators.validate_mobile_phone, "Invalid phone number.")
+        if mobile is None: return traveller_display_methods._cancel_add()
+
+        license_num = prompt("Driving License Number", InputValidators.validate_driving_license_number,
+                            "Invalid license format.")
+        if license_num is None: return traveller_display_methods._cancel_add()
+
+        traveller = Traveller(
+            id=str(uuid.uuid4()),
+            first_name=first_name,
+            last_name=last_name,
+            birthday=birthday,
+            gender=gender,
+            street_name=street,
+            house_number=house_number,
+            zip_code=zip_code,
+            city=city,
+            email_address=email,
+            mobile_phone=mobile,
+            driving_license_number=license_num,
+            registration_date=str(datetime.date.today())
+        )
 
         success = TravellerLogic.add_traveller(user, traveller)
         general_shared_methods.clear_console()
@@ -72,8 +129,61 @@ class traveller_display_methods:
             return False
 
     @staticmethod
+    def _cancel_add():
+        print("Traveller creation cancelled.")
+        time.sleep(1.5)
+        return False
+
+
+    # @staticmethod
+    # def display_update_traveller(user):
+    #     # Search for travellers first
+    #     while True:
+    #         travellers = traveller_display_methods.display_search_traveller(user, update_call=True)
+    #         if travellers is True:
+    #             return
+    #         if travellers is False:
+    #             continue
+
+    #         print("----------------------------------------------------------------------------")
+    #         traveller_id = input("Enter traveller ID to update (or type 'exit' to cancel): #").strip()
+    #         general_shared_methods.clear_console()
+
+    #         if traveller_id.lower() == 'exit':
+    #             print("Exiting update...")
+    #             time.sleep(1)
+    #             return
+
+    #         if traveller_id == '':
+    #             print("Traveller ID cannot be empty. Please try again.")
+    #             time.sleep(1.5)
+    #             continue
+
+    #         traveller = next((t for t in travellers if t.id == traveller_id), None)
+    #         if traveller is None:
+    #             print(f"No traveller found with ID {traveller_id}. Please try again.")
+    #             time.sleep(2)
+    #             continue
+
+    #         # Begin update process
+    #         updated_traveller = TravellerLogic.modify_traveller_from_input(traveller)
+    #         success = TravellerLogic.update_traveller(user, updated_traveller)
+
+    #         if success:
+    #             print("Traveller successfully updated.")
+    #             print("----------------------------------------------------------------------------")
+    #             traveller_display_methods.display_traveller(updated_traveller, user=user)
+    #             input("Press any key to continue...")
+    #             general_shared_methods.clear_console()
+    #             return True
+    #         else:
+    #             print("Failed to update traveller.")
+    #             time.sleep(2)
+    #             return False
+
+    @staticmethod
     def display_update_traveller(user):
-        # Search for travellers first
+
         while True:
             travellers = traveller_display_methods.display_search_traveller(user, update_call=True)
             if travellers is True:
@@ -101,8 +211,34 @@ class traveller_display_methods:
                 time.sleep(2)
                 continue
 
-            # Begin update process
-            updated_traveller = TravellerLogic.modify_traveller_from_input(traveller)
+            def prompt_update(label, attr, validator, error, *args):
+                current = getattr(traveller, attr)
+                entry = input(f"{label} [{current}]: ").strip()
+                if entry == '':
+                    return current
+                if validator(entry, *args) if args else validator(entry):
+                    return entry
+                else:
+                    print(error)
+                    time.sleep(1.5)
+                    return prompt_update(label, attr, validator, error, *args)
+
+            updated_traveller = traveller.__class__(
+                id=traveller.id,
+                first_name=prompt_update("First Name", "first_name", InputValidators.validate_name, "Invalid name."),
+                last_name=prompt_update("Last Name", "last_name", InputValidators.validate_name, "Invalid name."),
+                birthday=prompt_update("Birthday (YYYY-MM-DD)", "birthday", InputValidators.validate_birthday, "Invalid birthday format."),
+                gender=prompt_update("Gender (male/female)", "gender", InputValidators.validate_gender, "Invalid gender."),
+                street_name=prompt_update("Street Name", "street_name", InputValidators.validate_street_name, "Invalid street."),
+                house_number=prompt_update("House Number", "house_number", InputValidators.validate_house_number, "Invalid house number."),
+                zip_code=prompt_update("Zip Code", "zip_code", InputValidators.validate_zipcode, "Invalid zip code."),
+                city=traveller_display_methods.prompt_city_selection(current_city=traveller.city),
+                email_address=prompt_update("Email", "email_address", InputValidators.validate_email, "Invalid email."),
+                mobile_phone=prompt_update("Mobile Phone (8 digits)", "mobile_phone", InputValidators.validate_mobile_phone, "Invalid phone number."),
+                driving_license_number=prompt_update("Driving License Number", "driving_license_number", InputValidators.validate_driving_license_number, "Invalid license."),
+                registration_date=traveller.registration_date
+            )
+
             success = TravellerLogic.update_traveller(user, updated_traveller)
 
             if success:
@@ -117,54 +253,6 @@ class traveller_display_methods:
                 time.sleep(2)
                 return False
 
-    @staticmethod
-    def display_delete_traveller(user):
-        while True:
-            travellers = traveller_display_methods.display_search_traveller(user, update_call=True)
-            if travellers is True:
-                return
-            if travellers is False:
-                continue
-
-            general_shared_methods.clear_console()
-            print("----------------------------------------------------------------------------")
-            print("|" + "Matching Travellers".center(75) + "|")
-            print("----------------------------------------------------------------------------")
-
-            for idx, traveller in enumerate(travellers, 1):
-                print("----------------------------------------------------------------------------")
-                print("|" + f"Traveller #{idx}".center(75) + "|")
-                print("----------------------------------------------------------------------------")
-                traveller_display_methods.display_traveller(traveller, search_key=traveller.id, user=user)
-
-            print("----------------------------------------------------------------------------")
-            traveller_id = input("Enter traveller ID to delete (or type 'exit' to cancel): #").strip()
-            general_shared_methods.clear_console()
-
-            if traveller_id.lower() == 'exit':
-                print("Exiting deletion...")
-                time.sleep(1)
-                return
-
-            if traveller_id == '':
-                print("Traveller ID cannot be empty. Please try again.")
-                time.sleep(1.5)
-                continue
-
-            traveller = next((t for t in travellers if t.id == traveller_id), None)
-            if traveller is None:
-                print(f"No traveller found with ID {traveller_id}. Please try again.")
-                time.sleep(2)
-                continue
-
-            while True:
-                exit_delete = traveller_display_methods.display_delete_traveller_confirm(traveller, user)
-                if exit_delete:
-                    general_shared_methods.clear_console()
-                    print("Exiting Deletion...")
-                    time.sleep(1)
-                    break
-            break
 
     @staticmethod
     def display_search_traveller(user, update_call=False):
@@ -233,4 +321,30 @@ class traveller_display_methods:
             print("Invalid input. Please enter 'yes' or 'no'.")
             time.sleep(1.5)
             return
+        
+    @staticmethod
+    def prompt_city_selection(current_city=None):
+        allowed_cities = [
+            "Rotterdam", "Amsterdam", "Utrecht", "Den Haag", "Eindhoven",
+            "Groningen", "Leiden", "Maastricht", "Delft", "Breda"
+        ]
+        while True:
+            print("Available Cities:")
+            for i, city in enumerate(allowed_cities, start=1):
+                print(f"{i}. {city}")
+            if current_city:
+                entry = input(f"Choose a city number (or press Enter to keep '{current_city}'): ").strip()
+            else:
+                entry = input("Choose a city number: ").strip()
 
+            if entry.lower() == "exit":
+                return None
+            if entry == '' and current_city:
+                return current_city
+            if entry.isdigit():
+                index = int(entry) - 1
+                if 0 <= index < len(allowed_cities):
+                    return allowed_cities[index]
+
+            print("Invalid selection. Please enter a number from the list.")
+            time.sleep(1.5)
