@@ -81,4 +81,5 @@ class HomeScreen:
                 print("\nGoodbye!")
                 break
             else:
+                general_shared_methods.clear_console()
                 print("\nInvalid option. Please try again.")

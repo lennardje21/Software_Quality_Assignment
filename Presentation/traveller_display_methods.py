@@ -1,11 +1,13 @@
 # Presentation/traveller_display_methods.py
 
 from Helpers.input_validators import InputValidators
+from Helpers.input_prompters import InputPrompters
 from Logic.traveller_logic import TravellerLogic
 from DataModels.traveller import Traveller
 from Presentation.general_shared_methods import general_shared_methods
 import time
-
+import uuid
+import datetime
 
 class traveller_display_methods:
 
@@ -47,11 +49,6 @@ class traveller_display_methods:
 
     @staticmethod
     def display_add_traveller(user):
-        from Helpers.input_prompters import InputPrompters
-        from Helpers.input_validators import InputValidators
-        import uuid
-        import datetime
-
         general_shared_methods.clear_console()
         print("----------------------------------------------------------------------------")
         print("|" + "Add New Traveller".center(75) + "|")
@@ -70,7 +67,7 @@ class traveller_display_methods:
         last_name = prompt("Last Name", InputValidators.validate_name, "Invalid last name.")
         if last_name is None: return traveller_display_methods._cancel_add()
 
-        birthday = prompt("Birthday (YYYY-MM-DD)", InputValidators.validate_birthday, "Invalid date format.")
+        birthday = prompt("Birthday (YYYY-MM-DD)", InputValidators.validate_date, "Invalid date format.")
         if birthday is None: return traveller_display_methods._cancel_add()
 
         gender = prompt("Gender (male/female)", InputValidators.validate_gender, "Invalid gender.")
@@ -134,53 +131,6 @@ class traveller_display_methods:
         time.sleep(1.5)
         return False
 
-
-    # @staticmethod
-    # def display_update_traveller(user):
-    #     # Search for travellers first
-    #     while True:
-    #         travellers = traveller_display_methods.display_search_traveller(user, update_call=True)
-    #         if travellers is True:
-    #             return
-    #         if travellers is False:
-    #             continue
-
-    #         print("----------------------------------------------------------------------------")
-    #         traveller_id = input("Enter traveller ID to update (or type 'exit' to cancel): #").strip()
-    #         general_shared_methods.clear_console()
-
-    #         if traveller_id.lower() == 'exit':
-    #             print("Exiting update...")
-    #             time.sleep(1)
-    #             return
-
-    #         if traveller_id == '':
-    #             print("Traveller ID cannot be empty. Please try again.")
-    #             time.sleep(1.5)
-    #             continue
-
-    #         traveller = next((t for t in travellers if t.id == traveller_id), None)
-    #         if traveller is None:
-    #             print(f"No traveller found with ID {traveller_id}. Please try again.")
-    #             time.sleep(2)
-    #             continue
-
-    #         # Begin update process
-    #         updated_traveller = TravellerLogic.modify_traveller_from_input(traveller)
-    #         success = TravellerLogic.update_traveller(user, updated_traveller)
-
-    #         if success:
-    #             print("Traveller successfully updated.")
-    #             print("----------------------------------------------------------------------------")
-    #             traveller_display_methods.display_traveller(updated_traveller, user=user)
-    #             input("Press any key to continue...")
-    #             general_shared_methods.clear_console()
-    #             return True
-    #         else:
-    #             print("Failed to update traveller.")
-    #             time.sleep(2)
-    #             return False
-
     @staticmethod
     def display_update_traveller(user):
 
@@ -227,7 +177,7 @@ class traveller_display_methods:
                 id=traveller.id,
                 first_name=prompt_update("First Name", "first_name", InputValidators.validate_name, "Invalid name."),
                 last_name=prompt_update("Last Name", "last_name", InputValidators.validate_name, "Invalid name."),
-                birthday=prompt_update("Birthday (YYYY-MM-DD)", "birthday", InputValidators.validate_birthday, "Invalid birthday format."),
+                birthday=prompt_update("Birthday (YYYY-MM-DD)", "birthday", InputValidators.validate_date, "Invalid birthday format."),
                 gender=prompt_update("Gender (male/female)", "gender", InputValidators.validate_gender, "Invalid gender."),
                 street_name=prompt_update("Street Name", "street_name", InputValidators.validate_street_name, "Invalid street."),
                 house_number=prompt_update("House Number", "house_number", InputValidators.validate_house_number, "Invalid house number."),
@@ -262,14 +212,18 @@ class traveller_display_methods:
         print("----------------------------------------------------------------------------")
 
         # NOTE: INPUT FIELD
-        search_key = input("Enter a search key (name, email, license, etc.) or type 'exit' to go back: ").strip()
-        general_shared_methods.clear_console()
 
-        if search_key.lower() == 'exit':
-            print("Exiting search...")
-            time.sleep(1)
-            general_shared_methods.clear_console()
-            return True
+        while True:
+            search_key = input("Enter a search key (name, email, license, etc.) or type 'exit' to go back: ").strip()
+            if search_key.lower() == 'exit':
+                print("Exiting search...")
+                time.sleep(1)
+                general_shared_methods.clear_console()
+                return True
+            if InputValidators.validate_search_key(search_key):
+                break
+            print("Invalid search input. Only letters, numbers, and basic symbols allowed.")
+            time.sleep(1.5)
 
         travellers = TravellerLogic.search_traveller(user, search_key)
         if travellers and len(travellers) > 0:
@@ -281,9 +235,11 @@ class traveller_display_methods:
                 print("----------------------------------------------------------------------------")
                 traveller_display_methods.display_traveller(traveller, search_key=search_key, user=None)
                 print("----------------------------------------------------------------------------")
-                general_shared_methods.clear_console()
+
             if update_call:
                 return travellers
+            input("Press any key to continue...")
+            general_shared_methods.clear_console()
             return None
         else:
             print("No travellers found matching the search criteria.")
@@ -292,35 +248,64 @@ class traveller_display_methods:
             return False
         
     @staticmethod
-    def display_delete_traveller_confirm(traveller, user):
-        general_shared_methods.clear_console()
-        print("----------------------------------------------------------------------------")
-        print("|" + "Delete Traveller".center(75) + "|")
-        print("----------------------------------------------------------------------------")
-        traveller_display_methods.display_traveller(traveller, search_key=traveller.id, user=user)
-        print("----------------------------------------------------------------------------")
+    def display_delete_traveller(user):
+        while True:
+            travellers = traveller_display_methods.display_search_traveller(user, update_call=True)
+            if travellers is True:
+                return
+            if travellers is False:
+                continue
 
-        confirm = input(f"Are you sure you want to delete traveller {traveller.first_name} {traveller.last_name}? (yes/no): ").strip().lower()
-        if confirm == 'yes':
-            if TravellerLogic.delete_traveller(user, traveller.id):
+            print("----------------------------------------------------------------------------")
+            traveller_id = input("Enter traveller ID to delete (or type 'exit' to cancel): #").strip()
+            general_shared_methods.clear_console()
+
+            if traveller_id.lower() == 'exit':
+                print("Exiting deletion...")
+                time.sleep(1)
+                return
+
+            if traveller_id == '':
+                print("Traveller ID cannot be empty. Please try again.")
+                time.sleep(1.5)
+                continue
+
+            traveller = next((t for t in travellers if t.id == traveller_id), None)
+            if traveller is None:
+                print(f"No traveller found with ID {traveller_id}. Please try again.")
+                time.sleep(2)
+                continue
+
+            # Confirm deletion
+            while True:
                 general_shared_methods.clear_console()
-                print(f"✅ Traveller {traveller.first_name} {traveller.last_name} has been deleted successfully.")
-                time.sleep(2)
-                return True
-            else:
-                print("❌ Failed to delete traveller. Please check your permissions.")
-                time.sleep(2)
-                return True
-        elif confirm == 'no':
-            general_shared_methods.clear_console()
-            print("Deletion cancelled.")
-            time.sleep(1)
-            return True
-        else:
-            general_shared_methods.clear_console()
-            print("Invalid input. Please enter 'yes' or 'no'.")
-            time.sleep(1.5)
-            return
+                print("----------------------------------------------------------------------------")
+                print("|" + "Delete Traveller".center(75) + "|")
+                print("----------------------------------------------------------------------------")
+                traveller_display_methods.display_traveller(traveller, search_key=traveller.id, user=user)
+                print("----------------------------------------------------------------------------")
+
+                confirm = input(f"Are you sure you want to delete traveller {traveller.first_name} {traveller.last_name}? (yes/no): ").strip().lower()
+                if confirm == 'yes':
+                    if TravellerLogic.delete_traveller(user, traveller.id):
+                        general_shared_methods.clear_console()
+                        print(f"Traveller {traveller.first_name} {traveller.last_name} has been deleted successfully.")
+                        time.sleep(2)
+                        return True
+                    else:
+                        print("Failed to delete traveller. Please check your permissions.")
+                        time.sleep(2)
+                        return False
+                elif confirm == 'no':
+                    general_shared_methods.clear_console()
+                    print("Deletion cancelled.")
+                    time.sleep(1)
+                    return True
+                else:
+                    print("Invalid input. Please enter 'yes' or 'no'.")
+                    time.sleep(1.5)
+
+
         
     @staticmethod
     def prompt_city_selection(current_city=None):
