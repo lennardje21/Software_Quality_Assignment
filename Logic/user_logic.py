@@ -23,11 +23,12 @@ class UserLogic:
     @staticmethod
     def create_service_engineer_object(user: User, username, password, first_name, last_name):
         if user.is_authorized("system_admin"):
-            user_id = str(uuid.uuid4())
-            registration_date = time.strftime("%Y-%m-%d")
-            #NOTE HASH PASSWORD
-            new_engineer = User(user_id, username, password, first_name, last_name, "service_engineer", registration_date)
-            return new_engineer
+            new_engineer = User(str(uuid.uuid4()), 
+                                username, password, 
+                                first_name, last_name, 
+                                "service_engineer", 
+                                time.strftime("%Y-%m-%d"))
+            return new_engineer 
         else:
             return False
 
@@ -224,7 +225,23 @@ class UserLogic:
         else:
             return False
 
-
+    @staticmethod
+    def authenticate_user(username, password_hash):
+        try:
+            getData = GetData()
+            # Get all users, which will be decrypted by GetData
+            users = getData.get_all_users()
+            
+            # Compare case-insensitive with decrypted usernames
+            for user in users:
+                if user.username.lower() == username.lower() and user.password_hash == password_hash:
+                    return user
+                    
+            return None
+        except Exception as e:
+            print(f"Authentication error: {e}")
+            return None
+        
     # === SUPER ADMIN ONLY ===
 
     @staticmethod
@@ -310,4 +327,3 @@ class UserLogic:
             print(f"[UserLogic] Revoking restore code for System Admin {target_admin_id}...")
         else:
             print("Unauthorized action.")
-    

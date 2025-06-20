@@ -206,7 +206,7 @@ class admin_display_methods:
             elif field == "role" and user.role == "super_admin":
                 # Validate the role value
                 #NOTE FIXEN
-                valid_roles = ["system_admin", "service_engineer"]
+                valid_roles = ["service_engineer", "system_admin"]
                 if new_value not in valid_roles:
                     print(f"Invalid role '{new_value}'. Valid roles are: {', '.join(valid_roles)}")
                     time.sleep(2)

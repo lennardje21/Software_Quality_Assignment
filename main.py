@@ -16,7 +16,7 @@ def clear_and_seed_database():
     create_tables()
     seed()
     print("Database initialized and seeded with sample data.")
-    time.sleep(3)
+    time.sleep(2)
 
 if __name__ == "__main__":
     #clear_and_seed_database()
