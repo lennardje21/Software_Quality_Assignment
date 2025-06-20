@@ -32,7 +32,7 @@ class HomeScreen:
 
             if userInput == "1":
                 username = input("\nUsername: ")
-                password = general_shared_methods.input_passwordinput("Password: ")
+                password = general_shared_methods.input_password("Password: ")
                 password = UserLogic.hash_password(password)
                 role = HomeScreen.simulate_authentication(username, password)
 
