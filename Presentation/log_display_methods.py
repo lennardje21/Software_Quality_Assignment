@@ -40,11 +40,11 @@ class log_display_methods:
             table_data = []
             for log in logs:
                 table_data.append([
-                    log[0],
-                    log[6],
-                    log[1],
-                    log[2],
-                    log[3]
+                    log[0],  # ID
+                    log[6],  # Timestamp
+                    log[1],  # User
+                    log[2],  # Action
+                    log[3]   # Description
                 ])
             headers = ["ID", "Timestamp", "User", "Action", "Description"]
             print(tabulate(table_data, headers=headers, tablefmt="grid"))

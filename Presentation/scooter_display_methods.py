@@ -449,7 +449,7 @@ class scooter_display_methods:
         
         print("Type 'exit' at any prompt to cancel.")
 
-        p = InputPrompters.prompt_until_valid  # Alias for brevity
+        p = InputPrompters.prompt_until_valid()
         
         brand = p("Enter Brand: ", InputValidators.validate_alphanumeric, "Invalid brand name.")
         if brand is None: return None

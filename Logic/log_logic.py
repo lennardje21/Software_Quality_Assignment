@@ -27,12 +27,16 @@ class LogLogic:
         return get.get_all_logs()
 
     @staticmethod
-    def get_unread_suspicious_logs(user: User) -> list[dict]:
+    def get_unread_suspicious_logs(user: User) -> list[tuple]:
         if not user.is_authorized("system_admin"):
             return []
-        get = GetData()
-        insertData = InsertData()
-        logs = get.get_unread_suspicious_logs()
-        if logs:
-            insertData.mark_logs_as_seen([log["id"] for log in logs])
-        return logs
+
+        logs = LogLogic.get_all_logs(user)
+        # suspicious at index 4, seen at index 5
+        unread_logs = [log for log in logs if log[4] == "Yes" and log[5] == "no"]
+
+        if unread_logs:
+            insertData = InsertData()
+            insertData.mark_logs_as_seen([log[0] for log in unread_logs])
+
+        return unread_logs

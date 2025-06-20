@@ -135,5 +135,6 @@ class InputValidators:
     
     @staticmethod
     def validate_username(username: str) -> bool:
-        # Letters, numbers, and underscores; 3–30 characters
-        return bool(re.fullmatch(r"[a-zA-Z0-9_]{3,30}", username.strip()))
+        username = username.strip()
+        pattern = r"^[a-zA-Z_][a-zA-Z0-9_'.]{7,9}$"
+        return bool(re.fullmatch(pattern, username))

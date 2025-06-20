@@ -266,7 +266,6 @@ class GetData:
 
             return filtered
 
- 
     def get_all_logs(self) -> list[tuple]:
         with sqlite3.connect(self.db_path) as connection:
             query = '''
@@ -295,37 +294,13 @@ class GetData:
             
             return decrypted_rows
 
-    def get_unread_suspicious_logs(self) -> list[dict]:
-        with sqlite3.connect(self.db_path) as connection:
-            query = '''
-                SELECT id, username, action, description, suspicious, seen, timestamp
-                FROM logs
-                WHERE suspicious = ? AND seen = ?
-                ORDER BY id DESC
-            '''
-            cursor = connection.cursor()
-            # Use encrypted values for the WHERE clause
-            cursor.execute(query, (self.cryptography.encrypt('Yes'), self.cryptography.encrypt('No')))
-            rows = cursor.fetchall()
-            
-            # Decrypt the encrypted fields in each log entry
-            decrypted_logs = []
-            for row in rows:
-                decrypt = self.cryptography.decrypt
-                decrypted_log = {
-                    "id": row[0],  # id (not encrypted)
-                    "username": decrypt(row[1]),  # username
-                    "action": decrypt(row[2]),  # action
-                    "description": decrypt(row[3]),  # description
-                    "suspicious": decrypt(row[4]),  # suspicious
-                    "seen": decrypt(row[5]),  # seen
-                    "timestamp": decrypt(row[6])   # timestamp
-                }
-                decrypted_logs.append(decrypted_log)
-            
-            return decrypted_logs
-
-    
+    def get_unread_suspicious_logs(self) -> list[tuple]:
+        all_logs = self.get_all_logs()
+        suspicious_unread_logs = [
+            log for log in all_logs
+            if log[4] == "Yes" and log[5] == "No"
+        ]
+        return suspicious_unread_logs
 
     def get_restore_code_entry(self, code: str, user_id: str) -> dict | None:
         with sqlite3.connect(self.db_path) as connection:
