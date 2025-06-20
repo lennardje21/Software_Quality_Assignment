@@ -15,6 +15,7 @@ class ScooterLogic:
                     state_of_charge, target_soc_min, target_soc_max, 
                     latitude, longitude, out_of_service_status, mileage, 
                     last_maintenance_date):
+        #NOTE IN_SERVICE_DATE IS SET TO CURRENT DATE
         if user.is_authorized("system_admin"):
             scooter = Scooter(str(uuid.uuid4()), brand, model, serial_number, 
                               top_speed, battery_capacity, state_of_charge, 
@@ -69,7 +70,6 @@ class ScooterLogic:
     
     @staticmethod
     def assign_right_types(scooter, field, value):
-        """Convert user input to appropriate types for each field."""
         try:
             if field == "state_of_charge":
                 scooter.state_of_charge = int(float(value))

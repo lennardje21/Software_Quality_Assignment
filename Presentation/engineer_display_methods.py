@@ -59,9 +59,9 @@ class engineer_display_methods:
             print(f"Service Engineer {engineer.username} has been added successfully.")
             time.sleep(2)
             general_shared_methods.clear_console()
-            user_display_methods.display_user(engineer, current_user=user)
+            user_display_methods.display_user(engineer, search_key='', current_user=user)
             print("----------------------------------------------------------------------------")
-            input("Press any key to continue...")
+            general_shared_methods.input_password("Press any key to continue...")
             general_shared_methods.clear_console()
             return True
         else:
@@ -76,32 +76,54 @@ class engineer_display_methods:
         print("|" + "Enter Service Engineer Details".center(75) + "|")
         print("----------------------------------------------------------------------------")
         
-        try:
-            #NOTE INPUT FIELDS (no type exit and space checking)
-            username = input("Enter Username: ").strip()
-            password = input("Enter Password: ").strip()
-            first_name = input("Enter First Name: ").strip()
-            last_name = input("Enter Last Name: ").strip()
-            
-            if not username or not password or not first_name or not last_name:
-                print("All fields are required. Please try again.")
-                time.sleep(2)
-                return None
-            
-            engineer = UserLogic.create_service_engineer_object(
-                user,
-                username,
-                password,
-                first_name,
-                last_name
-            )
-            
-            return engineer
+        #NOTE INPUT FIELDS (no type exit and space checking)
+        username = input("Enter Username: ").strip()
+        username_passed, error_msg_username = UserLogic.check_username_requirements(username)
+        if not username_passed:
+            general_shared_methods.clear_console()
+            print(error_msg_username)
+            time.sleep(2)
+            general_shared_methods.clear_console()
+            return None
         
-        except Exception as e:
-            print(f"Error creating engineer: {str(e)}")
+        #NOTE PASSWORD MOET GEHASHT WORDEN EN AAN VOORWAARDEN VOLDOEN
+        password = general_shared_methods.input_password("Enter Password: ").strip()
+        passed, error_msg = UserLogic.check_password_requirements(password)
+        if not passed:
+            general_shared_methods.clear_console()
+            print(error_msg)
+            time.sleep(2)
+            general_shared_methods.clear_console()
+            return None
+        
+        # Add confirmation password check
+        password_confirm = general_shared_methods.input_password("Confirm Password: ").strip()
+        if password != password_confirm:
+            general_shared_methods.clear_console()
+            print("Passwords do not match. Please try again.")
+            time.sleep(2)
+            general_shared_methods.clear_console()
+            return None
+        
+        password = UserLogic.hash_password(password)
+        first_name = input("Enter First Name: ").strip()
+        last_name = input("Enter Last Name: ").strip()
+        
+        if not username or not password or not first_name or not last_name:
+            print("All fields are required. Please try again.")
             time.sleep(2)
             return None
+        
+        engineer = UserLogic.create_service_engineer_object(
+            user,
+            username,
+            password,
+            first_name,
+            last_name
+        )
+        
+        return engineer
+    
     
     @staticmethod
     def display_update_engineer(user):
@@ -152,6 +174,10 @@ class engineer_display_methods:
             "last_name"
         ]
         
+        # Add role field if the current user is a Super Admin
+        if user.role == "super_admin":
+            editable_fields.append("role")
+        
         while True:
             field = engineer_display_methods.prompt_for_engineer_field(engineer, user, editable_fields)
             if field is None:
@@ -163,11 +189,28 @@ class engineer_display_methods:
             
             general_shared_methods.clear_console()
             if field == "username":
+                # Add username validation using existing method
+                username_passed, error_msg = UserLogic.check_username_requirements(new_value)
+                if not username_passed:
+                    print(error_msg)
+                    time.sleep(2)
+                    general_shared_methods.clear_console()
+                    continue
+                
                 engineer.username = new_value
             elif field == "first_name":
                 engineer.first_name = new_value
             elif field == "last_name":
                 engineer.last_name = new_value
+            elif field == "role" and user.role == "super_admin":
+                # Validate the role value
+                valid_roles = ["service_engineer", "system_admin"]
+                if new_value not in valid_roles:
+                    print(f"Invalid role '{new_value}'. Valid roles are: {', '.join(valid_roles)}")
+                    time.sleep(2)
+                    general_shared_methods.clear_console()
+                    continue
+                engineer.role = new_value
             
             if UserLogic.modify_service_engineer(user, engineer):
                 print(f"Updated {field.replace('_', ' ').title()} for engineer {engineer.username}.")
@@ -185,7 +228,7 @@ class engineer_display_methods:
         while True:
             general_shared_methods.clear_console()
             print("----------------------------------------------------------------------------")
-            print("|" + "Update Service Engineer Data".center(75) + "|")
+            print("|" + "Update User Data".center(75) + "|")
             print("----------------------------------------------------------------------------")
             user_display_methods.display_user(engineer, current_user=user)
             print("----------------------------------------------------------------------------")
@@ -219,6 +262,28 @@ class engineer_display_methods:
                     current = engineer.first_name
                 elif field == "last_name":
                     current = engineer.last_name
+                elif field == "role":
+                    current = engineer.role
+                    print(f"Current {field.replace('_', ' ').title()}: {current}")
+                    print("Available roles: service_engineer, system_admin")
+                    print("----------------------------------------------------------------------------")
+                    #NOTE INPUT FIELD
+                    new_value = input(f"Enter new role (or type 'exit' to cancel): ").strip().lower()
+                    general_shared_methods.clear_console()
+                    
+                    if new_value.lower() == 'exit':
+                        print("Exiting update...")
+                        time.sleep(1)
+                        general_shared_methods.clear_console()
+                        return None
+                    
+                    if new_value == '':
+                        print("Role cannot be empty. Please enter a valid role or type 'exit' to cancel.")
+                        time.sleep(1.5)
+                        continue
+                    
+                    return new_value
+                
                 print(f"Current {field.replace('_', ' ').title()}: {current}")
             print("----------------------------------------------------------------------------")
             
