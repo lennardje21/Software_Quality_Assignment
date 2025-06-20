@@ -360,15 +360,21 @@ class scooter_display_methods:
         print("|" + "Enter New Scooter Details".center(75) + "|")
         print("----------------------------------------------------------------------------")
         
-        p = InputPrompters.prompt_until_valid  # Alias for brevity
+        print("Type 'exit' at any prompt to cancel.")
 
+        p = InputPrompters.prompt_until_valid  # Alias for brevity
+        
         brand = p("Enter Brand: ", InputValidators.validate_alphanumeric, "Invalid brand name.")
         if brand is None: return None
 
         model = p("Enter Model: ", InputValidators.validate_alphanumeric, "Invalid model name.")
         if model is None: return None
 
-        serial = p("Enter Serial Number: ", InputValidators.validate_alphanumeric, "Invalid serial number.")
+        serial = p(
+            "Enter Serial Number: ",
+            lambda s: InputValidators.validate_alphanumeric(s) and not ScooterLogic.serial_exists(user, s),
+            "Invalid or duplicate serial number. It must be alphanumeric and unique."
+        )
         if serial is None: return None
 
         top_speed = int(p("Enter Top Speed (km/h): ", InputValidators.validate_positive_number, "Invalid top speed. Must be a positive number."))
@@ -418,9 +424,7 @@ class scooter_display_methods:
             mileage,
             last_maintenance
         )
-        
-        return scooter
-    
+            
     @staticmethod
     def partial_update_scooter_display(scooter, user):
         editable_fields = [
@@ -521,46 +525,3 @@ class scooter_display_methods:
                 continue
 
             return resolved_field
-
-    @staticmethod
-    def prompt_for_value(field, scooter=None):
-        # Mapping field names to corresponding validators
-        validators = {
-            "state_of_charge": InputValidators.validate_percentage,
-            "target_soc_min": InputValidators.validate_percentage,
-            "target_soc_max": InputValidators.validate_percentage,
-            "latitude": InputValidators.validate_latitude,
-            "longitude": InputValidators.validate_longitude,
-            "out_of_service_status": InputValidators.validate_boolean,
-            "mileage": InputValidators.validate_positive_number,
-            "last_maintenance_date": InputValidators.validate_date,
-        }
-
-        general_shared_methods.clear_console()
-        print(scooter_display_methods.display_singular_scooter_field(scooter, field))
-        print("----------------------------------------------------------------------------")
-
-        validator = validators.get(field)
-        if validator:
-            prompt_msg = f"Enter new value for {field} (or type 'exit' to cancel): "
-            error_msg = f"Invalid input for {field}. Please try again."
-            validated_value = InputPrompters.prompt_until_valid(prompt_msg, validator, error_msg)
-            general_shared_methods.clear_console()
-            return validated_value
-        else:
-            # Fallback if no validator is mapped — treat as free text (still allow exit)
-            while True:
-                new_value = input(f"Enter new value for {field} (or type 'exit' to cancel): ").strip()
-                if new_value.lower() == 'exit':
-                    general_shared_methods.clear_console()
-                if new_value.lower() == 'exit':
-                    print("Exiting update...")
-                    time.sleep(1)
-                    general_shared_methods.clear_console()
-                    return None
-                if new_value == '':
-                    print("Value cannot be empty. Please enter a value or type 'exit' to cancel.")
-                    time.sleep(1.5)
-                    continue
-                general_shared_methods.clear_console()
-                return new_value

@@ -119,17 +119,6 @@ class admin_display_methods:
                 general_shared_methods.clear_console()
                 return None
         
-        # # Add confirmation password check
-        # password_confirm = general_shared_methods.input_password("Confirm Password: ").strip()
-        # if password != password_confirm:
-        #     general_shared_methods.clear_console()
-        #     print("Passwords do not match. Please try again.")
-        #     time.sleep(2)
-        #     general_shared_methods.clear_console()
-
-        
-        password = UserLogic.hash_password(password)
-
         first_name = InputPrompters.prompt_until_valid(
             prompt_msg="Enter First Name: ",
             validate_func=InputValidators.validate_name,
