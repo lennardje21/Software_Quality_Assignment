@@ -91,7 +91,7 @@ class InsertData:
                     VALUES (?, ?, ?, ?, 'No', ?)
                 '''
                 cursor = connection.cursor()
-                cursor.execute(query, (username, action, description, suspicious, timestamp))
+                cursor.execute(query, (self.cryptography.encrypt(username), self.cryptography.encrypt(action), self.cryptography.encrypt(description), self.cryptography.encrypt(suspicious), self.cryptography.encrypt(timestamp)))
             return True
         except Exception as e:
             print(f"Error inserting log: {e}")
@@ -105,7 +105,7 @@ class InsertData:
                     VALUES (?, ?, ?, 0)
                 '''
                 cursor = connection.cursor()
-                cursor.execute(query, (code, target_admin_id, backup_file))
+                cursor.execute(query, (self.cryptography.encrypt(code), self.cryptography.encrypt(target_admin_id), self.cryptography.encrypt(backup_file)))
             return True
         except Exception as e:
             print(f"Error inserting restore code: {e}")
@@ -114,30 +114,38 @@ class InsertData:
     def mark_restore_code_as_used(self, code: str) -> bool:
         try:
             with sqlite3.connect(self.db_path) as connection:
-                query = '''
-                    UPDATE restore_codes
-                    SET used = 1
-                    WHERE code = ?
-                '''
+                query_select = "SELECT id, code FROM restore_codes WHERE used = 0"
                 cursor = connection.cursor()
-                cursor.execute(query, (code,))
+                cursor.execute(query_select)
+                rows = cursor.fetchall()
+                
+                # Find the matching code after decryption
+                code_id = None
+                for row in rows:
+                    decrypted_code = self.cryptography.decrypt(row[1])
+                    if decrypted_code == code:
+                        code_id = row[0]  # Found the matching code
+                        break
+                
+                if code_id is None:
+                    print("No matching unused restore code found.")
+                    return False
+                
+                # Now update using the ID which is not encrypted
+                update_query = "UPDATE restore_codes SET used = 1 WHERE id = ?"
+                cursor.execute(update_query, (code_id,))
                 connection.commit()
                 return cursor.rowcount > 0
         except Exception as e:
             print(f"Error marking restore code as used: {e}")
             return False
 
-    def revoke_restore_codes_for_admin(self, target_admin_id: str) -> bool:
-        try:
-            with sqlite3.connect(self.db_path) as connection:
-                query = '''
-                    DELETE FROM restore_codes
-                    WHERE target_admin_id = ? AND used = 0
-                '''
-                cursor = connection.cursor()
-                cursor.execute(query, (target_admin_id,))
-                connection.commit()
-                return cursor.rowcount > 0
-        except Exception as e:
-            print(f"Error revoking restore codes: {e}")
-            return False
+
+    def mark_logs_as_seen(self, log_ids: list[int]):
+        with sqlite3.connect(self.db_path) as connection:
+            cursor = connection.cursor()
+            for log_id in log_ids:
+                # 'Yes' needs to be encrypted since the 'seen' column stores encrypted values
+                encrypted_yes = self.cryptography.encrypt('Yes')
+                cursor.execute("UPDATE logs SET seen = ? WHERE id = ?", (encrypted_yes, log_id))
+            connection.commit()

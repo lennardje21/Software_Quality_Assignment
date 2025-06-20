@@ -277,65 +277,129 @@ class GetData:
             cursor = connection.cursor()
             cursor.execute(query)
             rows = cursor.fetchall()
-            return rows
+            
+            # Decrypt the encrypted fields in each log entry
+            decrypted_rows = []
+            for row in rows:
+                decrypt = self.cryptography.decrypt
+                decrypted_row = (
+                    row[0],  # id (not encrypted)
+                    decrypt(row[1]),  # username
+                    decrypt(row[2]),  # action
+                    decrypt(row[3]),  # description
+                    decrypt(row[4]),  # suspicious
+                    decrypt(row[5]),  # seen
+                    decrypt(row[6])   # timestamp
+                )
+                decrypted_rows.append(decrypted_row)
+            
+            return decrypted_rows
 
-    def get_unread_suspicious_logs(self) -> list[tuple]:
+    def get_unread_suspicious_logs(self) -> list[dict]:
         with sqlite3.connect(self.db_path) as connection:
             query = '''
                 SELECT id, username, action, description, suspicious, seen, timestamp
                 FROM logs
-                WHERE suspicious = 'Yes' AND seen = 'No'
+                WHERE suspicious = ? AND seen = ?
                 ORDER BY id DESC
             '''
             cursor = connection.cursor()
-            cursor.execute(query)
+            # Use encrypted values for the WHERE clause
+            cursor.execute(query, (self.cryptography.encrypt('Yes'), self.cryptography.encrypt('No')))
             rows = cursor.fetchall()
-            return rows
+            
+            # Decrypt the encrypted fields in each log entry
+            decrypted_logs = []
+            for row in rows:
+                decrypt = self.cryptography.decrypt
+                decrypted_log = {
+                    "id": row[0],  # id (not encrypted)
+                    "username": decrypt(row[1]),  # username
+                    "action": decrypt(row[2]),  # action
+                    "description": decrypt(row[3]),  # description
+                    "suspicious": decrypt(row[4]),  # suspicious
+                    "seen": decrypt(row[5]),  # seen
+                    "timestamp": decrypt(row[6])   # timestamp
+                }
+                decrypted_logs.append(decrypted_log)
+            
+            return decrypted_logs
 
-    def mark_logs_as_seen(self, log_ids: list[int]):
-        with sqlite3.connect(self.db_path) as connection:
-            cursor = connection.cursor()
-            for log_id in log_ids:
-                cursor.execute("UPDATE logs SET seen = 'Yes' WHERE id = ?", (log_id,))
-            connection.commit()
+    
 
     def get_restore_code_entry(self, code: str, user_id: str) -> dict | None:
         with sqlite3.connect(self.db_path) as connection:
-            query = '''
-                SELECT backup_file, used
-                FROM restore_codes
-                WHERE code = ? AND target_admin_id = ?
-            '''
-            cursor = connection.cursor()
-            cursor.execute(query, (code, user_id))
-            row = cursor.fetchone()
-            if row:
-                return {
-                    "backup_file": row[0],
-                    "used": bool(row[1])
-                }
-            return None
-        
-    def get_restore_codes_for_admin(self, admin_id: str) -> list[tuple]:
-        with sqlite3.connect(self.db_path) as conn:
-            query = '''
-                SELECT code, backup_file
-                FROM restore_codes
-                WHERE target_admin_id = ?
-                ORDER BY rowid DESC
-            '''
-            cursor = conn.cursor()
-            cursor.execute(query, (admin_id,))
-            return cursor.fetchall()
-        
-    def get_all_system_admins(self) -> list[tuple]:
-        with sqlite3.connect(self.db_path) as connection:
-            query = '''
-                SELECT UserID, FirstName, LastName, UserName
-                FROM users
-                WHERE role = 'system_admin'
-                ORDER BY LastName ASC
-            '''
+            # Get all restore codes and filter in memory
+            query = "SELECT code, target_admin_id, backup_file, used FROM restore_codes"
             cursor = connection.cursor()
             cursor.execute(query)
-            return cursor.fetchall()
+            rows = cursor.fetchall()
+            
+            # Find matching code/user_id after decryption
+            for row in rows:
+                decrypt = self.cryptography.decrypt
+                try:
+                    decrypted_code = decrypt(row[0])
+                    decrypted_admin_id = decrypt(row[1])
+                    
+                    if decrypted_code == code and decrypted_admin_id == user_id:
+                        return {
+                            "backup_file": decrypt(row[2]),
+                            "used": bool(row[3])  # 'used' is not encrypted
+                        }
+                except Exception as e:
+                    print(f"Error decrypting restore code: {e}")
+                    continue
+            return None
+
+    def get_restore_codes_for_admin(self, admin_id: str) -> list[tuple]:
+        with sqlite3.connect(self.db_path) as conn:
+            # Get all restore codes and filter in memory
+            query = "SELECT code, target_admin_id, backup_file FROM restore_codes ORDER BY rowid DESC"
+            cursor = conn.cursor()
+            cursor.execute(query)
+            rows = cursor.fetchall()
+            
+            # Filter and decrypt matching codes
+            result = []
+            for row in rows:
+                decrypt = self.cryptography.decrypt
+                try:
+                    decrypted_admin_id = decrypt(row[1])
+                    if decrypted_admin_id == admin_id:
+                        # Return (decrypted_code, decrypted_backup_file)
+                        result.append((decrypt(row[0]), decrypt(row[2])))
+                except Exception as e:
+                    print(f"Error decrypting restore code: {e}")
+                    continue
+            return result
+
+    def get_all_system_admins(self) -> list[tuple]:
+        with sqlite3.connect(self.db_path) as connection:
+            # Get all users and filter in memory
+            query = "SELECT UserID, FirstName, LastName, UserName, Role FROM users"
+            cursor = connection.cursor()
+            cursor.execute(query)
+            rows = cursor.fetchall()
+            
+            # Filter system admins and decrypt fields
+            result = []
+            for row in rows:
+                decrypt = self.cryptography.decrypt
+                try:
+                    decrypted_role = decrypt(row[4])
+                    if decrypted_role == 'system_admin':
+                        # Return (user_id, decrypted_first_name, decrypted_last_name, decrypted_username)
+                        result.append((
+                            row[0],  # UserID is not encrypted
+                            decrypt(row[1]),  # FirstName
+                            decrypt(row[2]),  # LastName
+                            decrypt(row[3])   # UserName
+                        ))
+                except Exception as e:
+                    print(f"Error decrypting user data: {e}")
+                    continue
+                    
+            # Sort by last name
+            result.sort(key=lambda x: x[2])  # Sort by LastName
+            return result

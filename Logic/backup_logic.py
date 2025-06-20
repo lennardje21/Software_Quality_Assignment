@@ -4,6 +4,7 @@ import os, shutil, uuid
 from datetime import datetime
 from DataAccess.get_data import GetData
 from DataAccess.insert_data import InsertData
+from DataAccess.delete_data import DeleteData
 from DataModels.user import User
 
 DB_PATH = 'Database/urbanmobility.db'
@@ -57,8 +58,8 @@ class BackupLogic:
     def revoke_restore_code(user: User, target_admin_id: str) -> bool:
         if not user.is_authorized("super_admin"):
             return False
-        insert = InsertData()
-        return insert.revoke_restore_codes_for_admin(target_admin_id)
+        delete = DeleteData()
+        return delete.revoke_restore_codes_for_admin(target_admin_id)
 
     @staticmethod
     def get_backup_list() -> list[str]:

@@ -18,7 +18,7 @@ class backup_display_methods:
         if backup_name:
             print(f"\nBackup successfully created: {backup_name}")
             print("----------------------------------------------------------------------------")
-            input("Press any key to continue...")
+            general_shared_methods.input_password("Press any key to continue...")
             general_shared_methods.clear_console()
         else:
             print("\nFailed to create backup.")
@@ -35,7 +35,7 @@ class backup_display_methods:
             backups = BackupLogic.get_backup_list()
             if not backups:
                 print("No backups available.")
-                input("\nPress any key to continue...")
+                general_shared_methods.input_password("\nPress any key to continue...")
                 return
 
             print("\nAvailable backups:")
@@ -62,7 +62,7 @@ class backup_display_methods:
 
             if not codes:
                 print("No active restore codes found.")
-                input("\nPress any key to continue...")
+                general_shared_methods.input_password("\nPress any key to continue...")
                 return
 
             print("\nAvailable Restore Codes:")
@@ -88,7 +88,7 @@ class backup_display_methods:
             print("\nYou are not authorized to restore backups.")
 
     print("----------------------------------------------------------------------------")
-    input("Press any key to continue...")
+    general_shared_methods.input_password("Press any key to continue...")
     general_shared_methods.clear_console()
 
 
@@ -105,7 +105,7 @@ class backup_display_methods:
 
         if not admins:
             print("No system administrators found.")
-            input("\nPress any key to continue...")
+            general_shared_methods.input_password("\nPress any key to continue...")
             return
 
         print("\nSystem Administrators:")
@@ -127,7 +127,7 @@ class backup_display_methods:
         backups = BackupLogic.get_backup_list()
         if not backups:
             print("No backups found.")
-            input("\nPress any key to return...")
+            general_shared_methods.input_password("\nPress any key to return...")
             return
 
         print("\nAvailable Backups:")
@@ -152,7 +152,7 @@ class backup_display_methods:
         else:
             print("\nFailed to generate restore code.")
         print("----------------------------------------------------------------------------")
-        input("Press any key to continue...")
+        general_shared_methods.input_password("Press any key to continue...")
         general_shared_methods.clear_console()
 
 
@@ -171,5 +171,5 @@ class backup_display_methods:
         else:
             print("\nFailed to revoke restore codes.")
         print("----------------------------------------------------------------------------")
-        input("Press any key to continue...")
+        general_shared_methods.input_password("Press any key to continue...")
         general_shared_methods.clear_console()

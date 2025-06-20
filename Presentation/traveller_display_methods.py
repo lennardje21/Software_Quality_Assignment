@@ -5,9 +5,7 @@ from Helpers.input_prompters import InputPrompters
 from Logic.traveller_logic import TravellerLogic
 from DataModels.traveller import Traveller
 from Presentation.general_shared_methods import general_shared_methods
-import time
-import uuid
-import datetime
+import time, uuid, datetime
 
 class traveller_display_methods:
 
@@ -118,7 +116,7 @@ class traveller_display_methods:
             print(f"Traveller {traveller.first_name} {traveller.last_name} has been added successfully.")
             print("----------------------------------------------------------------------------")
             traveller_display_methods.display_traveller(traveller, user=user)
-            input("Press any key to continue...")
+            general_shared_methods.input_password("Press any key to continue...")
             general_shared_methods.clear_console()
             return True
         else:
@@ -201,7 +199,7 @@ class traveller_display_methods:
                 print("Traveller successfully updated.")
                 print("----------------------------------------------------------------------------")
                 traveller_display_methods.display_traveller(updated_traveller, user=user)
-                input("Press any key to continue...")
+                general_shared_methods.input_password("Press any key to continue...")
                 general_shared_methods.clear_console()
                 return True
             else:
@@ -243,7 +241,7 @@ class traveller_display_methods:
             if update_call:
                 return travellers
 
-            input("Press any key to continue...")
+            general_shared_methods.input_password("Press any key to continue...")
             general_shared_methods.clear_console()
             return None
         else:

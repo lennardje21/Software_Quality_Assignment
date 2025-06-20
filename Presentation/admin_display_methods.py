@@ -44,7 +44,7 @@ class admin_display_methods:
                 user_display_methods.display_user(admin, search_key)
             if update_call:
                 return admins
-            input("Press any key to continue...")
+            general_shared_methods.input_password("Press any key to continue...")
             general_shared_methods.clear_console()
             return None
         else:
@@ -73,7 +73,7 @@ class admin_display_methods:
             general_shared_methods.clear_console()
             user_display_methods.display_user(admin, search_key='', current_user=user)
             print("----------------------------------------------------------------------------")
-            input("Press any key to continue...")
+            general_shared_methods.input_password("Press any key to continue...")
             general_shared_methods.clear_console()
             return True
         else:

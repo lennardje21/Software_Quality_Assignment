@@ -76,7 +76,7 @@ def create_tables():
 
     create_log_table = '''
     CREATE TABLE IF NOT EXISTS logs (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id INTEGER PRIMARY KEY,
         username TEXT NOT NULL,
         action TEXT NOT NULL,
         description TEXT NOT NULL,
@@ -86,11 +86,6 @@ def create_tables():
     );
     '''
     
-
-    
-    
-    #create_logs_table = None #Nog doen
-
     cursor = connection.cursor()
     cursor.execute(create_travellers_table)
     cursor.execute(create_users_table)
@@ -98,7 +93,6 @@ def create_tables():
     cursor.execute(create_restore_code_table)
     cursor.execute(create_log_table)
 
-    
     connection.commit()
     connection.close()
 
