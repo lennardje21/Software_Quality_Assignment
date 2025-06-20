@@ -95,7 +95,7 @@ class admin_display_methods:
                 "Invalid username. Use 3-30 characters, only letters, numbers, and underscores."
             )
             if username is None:
-            return None
+                return None
         
             if UserLogic.username_exists(user, username):
                 print("This username is already taken. Please choose another one.")
@@ -108,24 +108,24 @@ class admin_display_methods:
             password = input("Enter Password: ").strip()
             if password.lower() == 'exit':
                 return None
-        passed, error_msg = UserLogic.check_password_requirements(password)
+            passed, error_msg = UserLogic.check_password_requirements(password)
             if passed:
                 password = UserLogic.hash_password(password)
                 break
             else:
-            general_shared_methods.clear_console()
-            print(error_msg)
-            time.sleep(2)
-            general_shared_methods.clear_console()
-            return None
+                general_shared_methods.clear_console()
+                print(error_msg)
+                time.sleep(2)
+                general_shared_methods.clear_console()
+                return None
         
-        # Add confirmation password check
-        password_confirm = general_shared_methods.input_password("Confirm Password: ").strip()
-        if password != password_confirm:
-            general_shared_methods.clear_console()
-            print("Passwords do not match. Please try again.")
-            time.sleep(2)
-            general_shared_methods.clear_console()
+        # # Add confirmation password check
+        # password_confirm = general_shared_methods.input_password("Confirm Password: ").strip()
+        # if password != password_confirm:
+        #     general_shared_methods.clear_console()
+        #     print("Passwords do not match. Please try again.")
+        #     time.sleep(2)
+        #     general_shared_methods.clear_console()
 
         
         password = UserLogic.hash_password(password)
@@ -266,45 +266,6 @@ class admin_display_methods:
             if field not in editable_fields:
                 print(f"Invalid field '{field}'. Please choose from one of the editable fields.")
                 time.sleep(2)
-                continue
-            
-            return field
-    
-    @staticmethod
-    def prompt_for_admin_value(field, admin=None):
-        #NOTE INPUT VALIDATION NEEDED
-        while True:
-            general_shared_methods.clear_console()
-            if admin:
-                if field == "username":
-                    current = admin.username
-                elif field == "first_name":
-                    current = admin.first_name
-                elif field == "last_name":
-                    current = admin.last_name
-                elif field == "role":
-                    current = admin.role
-                    print(f"Current {field.replace('_', ' ').title()}: {current}")
-                    print("Available roles: system_admin, service_engineer")
-                    print("----------------------------------------------------------------------------")
-                    #NOTE INPUT FIELD
-                    new_value = input(f"Enter new role (or type 'exit' to cancel): ").strip().lower()
-                    general_shared_methods.clear_console()
-                    
-                    if new_value.lower() == 'exit':
-                        print("Exiting update...")
-                        time.sleep(1)
-                        general_shared_methods.clear_console()
-                        return None
-                    
-            if not InputValidators.validate_safe_string(field):
-                print("Invalid characters in field name.")
-                        time.sleep(1.5)
-                        continue
-                    
-            if field not in editable_fields:
-                print(f"'{field}' is not a valid field. Please choose from: {', '.join(editable_fields)}")
-                time.sleep(1.5)
                 continue
             
             return field

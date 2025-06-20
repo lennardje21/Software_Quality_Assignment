@@ -335,7 +335,7 @@ class scooter_display_methods:
         
         success = ScooterLogic.add_scooter(user, scooter)
 
-            general_shared_methods.clear_console()
+        general_shared_methods.clear_console()
         if success:
             print(f"Scooter {scooter.id} has been added successfully.")
             time.sleep(2)
@@ -536,9 +536,9 @@ class scooter_display_methods:
             "last_maintenance_date": InputValidators.validate_date,
         }
 
-            general_shared_methods.clear_console()
-            print(scooter_display_methods.display_singular_scooter_field(scooter, field))
-            print("----------------------------------------------------------------------------")
+        general_shared_methods.clear_console()
+        print(scooter_display_methods.display_singular_scooter_field(scooter, field))
+        print("----------------------------------------------------------------------------")
 
         validator = validators.get(field)
         if validator:
@@ -550,17 +550,17 @@ class scooter_display_methods:
         else:
             # Fallback if no validator is mapped — treat as free text (still allow exit)
             while True:
-            new_value = input(f"Enter new value for {field} (or type 'exit' to cancel): ").strip()
+                new_value = input(f"Enter new value for {field} (or type 'exit' to cancel): ").strip()
                 if new_value.lower() == 'exit':
-            general_shared_methods.clear_console()
-            if new_value.lower() == 'exit':
-                print("Exiting update...")
-                time.sleep(1)
+                    general_shared_methods.clear_console()
+                if new_value.lower() == 'exit':
+                    print("Exiting update...")
+                    time.sleep(1)
+                    general_shared_methods.clear_console()
+                    return None
+                if new_value == '':
+                    print("Value cannot be empty. Please enter a value or type 'exit' to cancel.")
+                    time.sleep(1.5)
+                    continue
                 general_shared_methods.clear_console()
-                return None
-            if new_value == '':
-                print("Value cannot be empty. Please enter a value or type 'exit' to cancel.")
-                time.sleep(1.5)
-                continue
-                general_shared_methods.clear_console()
-            return new_value
+                return new_value

@@ -2,15 +2,13 @@
 
 import sqlite3, time
 from DataModels.user import User
-from Presentation.general_shared_methods import general_shared_methods
 from Presentation.service_engineer_screen import ServiceEngineerScreen
 from Presentation.system_admin_screen import SystemAdminScreen
 from Presentation.super_admin_screen import SuperAdminScreen
 from Logic.user_logic import UserLogic
 from Presentation.general_shared_methods import general_shared_methods
 
-from Logic.login_logic import LoginLogic
-from Logic.log_logic import LogLogic
+db_path = 'Database/urbanmobility.db'
 
 class HomeScreen:
     MAX_ATTEMPTS = 3
@@ -19,29 +17,18 @@ class HomeScreen:
     def display():
         user = ""
         failed_attempts = 0
-        failed_usernames = []
         while True:
             general_shared_methods.clear_console()
-            print("----------------------------------------------------------------------------")
-            print("|" + "Welcome to the Urban Mobility Backend System".center(75) + "|")
-            print("----------------------------------------------------------------------------")
+            print("\nWelcome to the Urban Mobility Backend System!\n")
+
             if failed_attempts >= HomeScreen.MAX_ATTEMPTS:
-                print("\nToo many failed login attempts. The system is now locked.")
-                attempted_users = ", ".join(set(failed_usernames)) or "unknown"
-                LogLogic.add_log_to_database(
-                    username=attempted_users,
-                    action="Login Lockout",
-                    description=f"Too many failed login attempts. Usernames tried: {attempted_users}",
-                    suspicious="Yes"
-                )
+                print("\nToo many failed login attempts. The program is locked.")
                 break
 
-            print("----------------------------------------------------------------------------")
-            print("|" + "Main menu".center(75) + "|")
-            print("----------------------------------------------------------------------------")
+            print("\nMain Menu:")
             print("[1] Login")
             print("[2] Exit program")
-            userInput = input("Choose an option: ").strip()
+            userInput = input("Choose an option: ")
 
             if userInput == "1":
                 username = input("\nUsername: ")
@@ -49,34 +36,30 @@ class HomeScreen:
                 password = UserLogic.hash_password(password)
                 role = HomeScreen.simulate_authentication(username, password)
 
-                if user:
-                    general_shared_methods.clear_console()
-                    print("----------------------------------------------------------------------------")
-                    print("|" + f"Login successful! Logged in as {user.role}".center(75) + "|")
-                    print("----------------------------------------------------------------------------")
-                    
-                    failed_attempts = 0
-                    failed_usernames.clear()
+                if role:
+                    print(f"\nLogin successful! Logged in as {role}.\n")
+                    failed_attempts = 0  # reset attempts
 
-                    LogLogic.add_log_to_database(
-                        username=user.username,
-                        action="Login",
-                        description="Successful login",
-                        suspicious="No"
-                    )
+                    # Build User object
+                    user = HomeScreen.get_user_object(username, password)
 
-                    if user.role == "service_engineer":
-                        ServiceEngineerScreen.display(user)
-                    elif user.role == "system_admin":
-                        SystemAdminScreen.display(user)
-                    elif user.role == "super_admin":
-                        SuperAdminScreen.display(user)
+                    if user:
+                        if user.role == "service_engineer":
+                            ServiceEngineerScreen.home_display(user)
+
+                        elif user.role == "system_admin":
+                            SystemAdminScreen.display(user)
+
+                        elif user.role == "super_admin":
+                            SuperAdminScreen.display(user)
+
+                        else:
+                            print(f"Unknown role: {user.role}")
                     else:
-                        print(f"Unknown role: {user.role}")
+                        print("Error loading user data.")
 
                 else:
                     failed_attempts += 1
-                    failed_usernames.append(username)
                     remaining = HomeScreen.MAX_ATTEMPTS - failed_attempts
                     print(f"\nInvalid username or password. Attempts left: {remaining}")
                     time.sleep(1.5)
