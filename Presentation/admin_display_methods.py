@@ -226,7 +226,7 @@ class admin_display_methods:
                 break
 
     @staticmethod
-    def update_admin_fully(admin, user):
+    def update_admin_fully(admin, user, update_own_account=False):
         editable_fields = ["username", "first_name", "last_name"]
         
         validators = {

@@ -65,3 +65,54 @@ class ScooterLogic:
             return getData.get_scooter_by_partial(search_key)
         else:
             return None
+
+        
+    
+
+    @staticmethod
+    def find_scooter_by_id(scooters, scooter_id):
+        for scooter in scooters:
+            if scooter.id == scooter_id:
+                return scooter
+        return None
+    
+    @staticmethod
+    def assign_right_types(scooter, field, value):
+        """
+        Assigns the value to the scooter field with the appropriate type conversion.
+        Works with the current input validation framework.
+        """
+        # Handle field aliases
+        if field == "last_maintenance":
+            field = "last_maintenance_date"
+        elif field == "out_of_service":
+            field = "out_of_service_status"
+        
+        # Convert the value to the appropriate type based on the field
+        try:
+            if field in ["top_speed", "battery_capacity", "state_of_charge", 
+                        "target_soc_min", "target_soc_max", "mileage"]:
+                # Integer fields
+                setattr(scooter, field, int(value))
+                
+            elif field in ["latitude", "longitude"]:
+                # Float fields
+                setattr(scooter, field, float(value))
+                
+            elif field == "out_of_service_status":
+                # Boolean field - convert various representations to boolean
+                value_lower = value.lower()
+                if value_lower in ["yes", "true", "1"]:
+                    setattr(scooter, field, True)
+                else:
+                    setattr(scooter, field, False)
+                
+            else:
+                # String fields (brand, model, serial_number, etc.)
+                setattr(scooter, field, str(value))
+            
+            return True
+        except (ValueError, TypeError, AttributeError) as e:
+            print(f"Error assigning value: {e}")
+            return False
+

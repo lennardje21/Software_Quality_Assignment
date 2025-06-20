@@ -142,6 +142,7 @@ class InsertData:
         with sqlite3.connect(self.db_path) as connection:
             cursor = connection.cursor()
             for log_id in log_ids:
+                # 'Yes' needs to be encrypted since the 'seen' column stores encrypted values
                 encrypted_yes = self.cryptography.encrypt('Yes')
                 cursor.execute("UPDATE logs SET seen = ? WHERE id = ?", (encrypted_yes, log_id))
             connection.commit()
