@@ -108,16 +108,16 @@ class admin_display_methods:
             password = input("Enter Password: ").strip()
             if password.lower() == 'exit':
                 return None
+
             passed, error_msg = UserLogic.check_password_requirements(password)
             if passed:
                 password = UserLogic.hash_password(password)
                 break
             else:
-                general_shared_methods.clear_console()
                 print(error_msg)
                 time.sleep(2)
-                general_shared_methods.clear_console()
-                return None
+                # No clear_console or return here; allow retry
+
         
         first_name = InputPrompters.prompt_until_valid(
             prompt_msg="Enter First Name: ",

@@ -1,7 +1,6 @@
 # Presentation/home_screen.py
 
 import sqlite3, time
-from DataModels.user import User
 from Presentation.service_engineer_screen import ServiceEngineerScreen
 from Presentation.system_admin_screen import SystemAdminScreen
 from Presentation.super_admin_screen import SuperAdminScreen
@@ -64,58 +63,3 @@ class HomeScreen:
             else:
                 print("\nInvalid option, please try again.")
                 time.sleep(0.5)
-
-    # temp function
-    @staticmethod
-    def simulate_authentication(username, password):
-
-        connection = sqlite3.connect(db_path)
-        cursor = connection.cursor()
-
-        query = '''
-        SELECT Role
-        FROM users
-        WHERE UserName = ? AND PasswordHash = ?
-        '''
-
-        cursor.execute(query, (username, password))
-        row = cursor.fetchone()
-
-        connection.close()
-
-        if row:
-            # row[0] is Role
-            return row[0]
-        else:
-            return None
-
-    # temp function
-    @staticmethod
-    def get_user_object(username, password):
-        connection = sqlite3.connect(db_path)
-        cursor = connection.cursor()
-
-        query = '''
-        SELECT UserID, UserName, PasswordHash, FirstName, LastName, Role, RegistrationDate, MustChangePassword
-        FROM users
-        WHERE UserName = ? AND PasswordHash = ?
-        '''
-
-        cursor.execute(query, (username, password))
-        row = cursor.fetchone()
-
-        connection.close()
-
-        if row:
-            return User(
-                id=row[0],
-                username=row[1],
-                password_hash=row[2],
-                first_name=row[3],
-                last_name=row[4],
-                role=row[5],
-                registration_date=row[6],
-                must_change_password=row[7]
-            )
-        else:
-            return None
