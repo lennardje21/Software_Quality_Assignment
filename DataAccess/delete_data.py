@@ -70,7 +70,6 @@ class DeleteData:
                 cursor.execute(query_select)
                 rows = cursor.fetchall()
                 
-                # Find all codes matching the target admin ID after decryption
                 matching_code_ids = []
                 for row in rows:
                     decrypted_admin_id = self.cryptography.decrypt(row[1])

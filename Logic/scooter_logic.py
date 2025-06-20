@@ -63,6 +63,7 @@ class ScooterLogic:
     @staticmethod
     def search_scooter(user: User, search_key: str = None) -> list:
         if user.is_authorized("service_engineer"):
-            print("[ScooterLogic] Searching for scooters...")
+            getData = GetData()
+            return getData.get_scooter_by_partial(search_key)
         else:
-            print("Unauthorized action.")
+            return None
