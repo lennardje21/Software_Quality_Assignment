@@ -1,4 +1,6 @@
 import time
+from Helpers.input_prompters import InputPrompters
+from Helpers.input_validators import InputValidators
 from Logic.user_logic import UserLogic
 from Presentation.general_shared_methods import general_shared_methods
 from Presentation.user_display_methods import user_display_methods
@@ -12,31 +14,38 @@ class admin_display_methods:
         print("|" + "Search for System Administrator".center(75) + "|")
         print("----------------------------------------------------------------------------")
 
-        #NOTE INPUT FIELD
-        search_key = input("Enter a search key (id, name, username, etc.) or type 'exit' to go back: ")
-        search_key = search_key.strip()
-        general_shared_methods.clear_console()
+        search_key = InputPrompters.prompt_until_valid(
+            prompt_msg="Enter a search key (id, name, username, etc.) or type 'exit' to go back: ",
+            validate_func=InputValidators.validate_search_key,
+            error_msg="Invalid search input. Please use letters, numbers, and common symbols only."
+        )
         
-        if search_key.lower() == 'exit':
+        if search_key is None:
             print("Exiting search...")
             time.sleep(1)
             general_shared_methods.clear_console()
             return True
         
+        general_shared_methods.clear_console()
         admins = UserLogic.search_system_admins(user, search_key)
+
         if admins is None:
             print("Failed to search for system administrators. Please check your permissions.")
             time.sleep(2)
+            return False
+
         if admins and len(admins) > 0:
             print(f"\nFound {len(admins)} system administrator(s) matching '{general_shared_methods.highlight(search_key, search_key)}':")
             time.sleep(1)
             for count, admin in enumerate(admins, 1):
                 print("----------------------------------------------------------------------------")
-                print("|" + f"search result #{count}".center(75) + "|")
+                print("|" + f"Search Result #{count}".center(75) + "|")
                 print("----------------------------------------------------------------------------")
                 user_display_methods.display_user(admin, search_key)
             if update_call:
                 return admins
+            input("Press any key to continue...")
+            general_shared_methods.clear_console()
             return None
         else:
             print("No system administrators found matching the search criteria.")
@@ -64,7 +73,7 @@ class admin_display_methods:
             general_shared_methods.clear_console()
             user_display_methods.display_user(admin, search_key='', current_user=user)
             print("----------------------------------------------------------------------------")
-            general_shared_methods.input_password("Press any key to continue...")
+            input("Press any key to continue...")
             general_shared_methods.clear_console()
             return True
         else:
@@ -79,43 +88,64 @@ class admin_display_methods:
         print("|" + "Enter System Administrator Details".center(75) + "|")
         print("----------------------------------------------------------------------------")
         
-        #NOTE INPUT FIELDS (no type exit and space checking)
-        username = input("Enter Username: ").strip()
-        username_passed, error_msg_username = UserLogic.check_username_requirements(username)
-        if not username_passed:
-            general_shared_methods.clear_console()
-            print(error_msg_username)
-            time.sleep(2)
-            general_shared_methods.clear_console()
-            return None
+        while True:
+            username = InputPrompters.prompt_until_valid(
+                "Enter Username: ",
+                InputValidators.validate_username,
+                "Invalid username. Use 3-30 characters, only letters, numbers, and underscores."
+            )
+            if username is None:
+                return None
         
-        #NOTE ALS PASSWORD CHECK FAALT RETURN NAAR DIT SCHERM?
-        password = general_shared_methods.input_password("Enter Password: ").strip()
-        passed, error_msg = UserLogic.check_password_requirements(password)
-        if not passed:
-            general_shared_methods.clear_console()
-            print(error_msg)
-            time.sleep(2)
-            general_shared_methods.clear_console()
-            return None
+            if UserLogic.username_exists(user, username):
+                print("This username is already taken. Please choose another one.")
+                time.sleep(1.5)
+                continue
+
+            break
+
+        while True:
+            password = input("Enter Password: ").strip()
+            if password.lower() == 'exit':
+                return None
+            passed, error_msg = UserLogic.check_password_requirements(password)
+            if passed:
+                password = UserLogic.hash_password(password)
+                break
+            else:
+                general_shared_methods.clear_console()
+                print(error_msg)
+                time.sleep(2)
+                general_shared_methods.clear_console()
+                return None
         
-        # Add confirmation password check
-        password_confirm = general_shared_methods.input_password("Confirm Password: ").strip()
-        if password != password_confirm:
-            general_shared_methods.clear_console()
-            print("Passwords do not match. Please try again.")
-            time.sleep(2)
-            general_shared_methods.clear_console()
-            return None
+        # # Add confirmation password check
+        # password_confirm = general_shared_methods.input_password("Confirm Password: ").strip()
+        # if password != password_confirm:
+        #     general_shared_methods.clear_console()
+        #     print("Passwords do not match. Please try again.")
+        #     time.sleep(2)
+        #     general_shared_methods.clear_console()
+
         
         password = UserLogic.hash_password(password)
-        first_name = input("Enter First Name: ").strip()
-        last_name = input("Enter Last Name: ").strip()
-        
-        if not username or not password or not first_name or not last_name:
-            print("All fields are required. Please try again.")
-            time.sleep(2)
+
+        first_name = InputPrompters.prompt_until_valid(
+            prompt_msg="Enter First Name: ",
+            validate_func=InputValidators.validate_name,
+            error_msg="Invalid first name. Use alphabetic characters only."
+        )
+        if first_name is None:
             return None
+        
+        last_name = InputPrompters.prompt_until_valid(
+            prompt_msg="Enter Last Name: ",
+            validate_func=InputValidators.validate_name,
+            error_msg="Invalid last name. Use alphabetic characters only."
+        )
+        if last_name is None:
+            return None
+
         
         admin = UserLogic.create_system_admin_object(
             user,
@@ -141,22 +171,20 @@ class admin_display_methods:
             admin_id = input("Enter system administrator ID to update (or type 'exit' to cancel): ").strip()
             general_shared_methods.clear_console()
             
-            if admin_id.lower() == 'exit':
+            admin_id = InputPrompters.prompt_until_valid(
+                "Enter system administrator ID to update (or type 'exit' to cancel): ",
+                InputValidators.validate_id,
+                "Invalid ID. Use letters, numbers, dashes or underscores."
+            )
+            if admin_id is None:
                 print("Exiting update...")
                 time.sleep(1)
+                general_shared_methods.clear_console()
                 return
             
-            if admin_id == '':
-                print("Administrator ID cannot be empty. Please try again.")
-                time.sleep(1.5)
-                continue
+            general_shared_methods.clear_console()
             
-            admin = None
-            for adm in admins:
-                if adm.id == admin_id:
-                    admin = adm
-                    break
-            
+            admin = next((adm for adm in admins if adm.id == admin_id), None)
             if admin is None:
                 print(f"No system administrator found with ID {admin_id}. Please try again.")
                 time.sleep(2)
@@ -169,22 +197,33 @@ class admin_display_methods:
                 break
     
     @staticmethod
-    def update_admin_fully(admin, user, update_own_account=False):
-        editable_fields = [
-            "username",
-            "first_name",
-            "last_name"
-        ]
+    def update_admin_fully(admin, user):
+        editable_fields = ["username", "first_name", "last_name"]
         
-        if user.role == "super_admin":
-            editable_fields.append("role")
+        validators = {
+            "username": lambda val: InputValidators.validate_safe_string(val) and not UserLogic.username_exists(user, val),
+            "first_name": InputValidators.validate_name,
+            "last_name": InputValidators.validate_name,
+        }
         
         while True:
             field = admin_display_methods.prompt_for_admin_field(admin, user, editable_fields)
             if field is None:
                 return True
             
-            new_value = admin_display_methods.prompt_for_admin_value(field, admin)
+            validator = validators.get(field)
+            error_msg = {
+                "username": "Invalid or already taken username. Only letters, numbers, and underscores allowed.",
+                "first_name": "Invalid first name. Only letters and spaces allowed.",
+                "last_name": "Invalid last name. Only letters and spaces allowed.",
+            }.get(field, "Invalid input.")
+
+            new_value = InputPrompters.prompt_until_valid(
+                f"Enter new value for {field} (or type 'exit' to cancel): ",
+                validator,
+                error_msg
+            )
+
             if new_value is None:
                 continue
             
@@ -214,12 +253,12 @@ class admin_display_methods:
                     continue
                 admin.role = new_value
             
-            if UserLogic.modify_system_admin(user, admin, update_own_account):
+            if UserLogic.modify_system_admin(user, admin):
                 print(f"Updated {field.replace('_', ' ').title()} for administrator {admin.username}.")
                 time.sleep(2)
                 general_shared_methods.clear_console()
             else:
-                print(f"Failed to update administrator. Please check your permissions.")
+                print("Failed to update administrator. Please check your permissions.")
                 time.sleep(2)
                 general_shared_methods.clear_console()
             
@@ -232,9 +271,10 @@ class admin_display_methods:
             print("----------------------------------------------------------------------------")
             print("|" + "Update User Data".center(75) + "|")
             print("----------------------------------------------------------------------------")
-            user_display_methods.display_user(admin, search_key=None, current_user=user)
+            user_display_methods.display_user(admin, current_user=user)
             print("----------------------------------------------------------------------------")
-            print("Enter the field you want to update or type 'exit' to cancel. Use '_' for spaces.")
+            print("Editable fields: " + ", ".join(editable_fields))
+            print("Enter the field you want to update or type 'exit' to cancel:")
             
             #NOTE INPUT FIELD
             field = input("Field to update: ").strip().lower()
@@ -254,60 +294,6 @@ class admin_display_methods:
             return field
     
     @staticmethod
-    def prompt_for_admin_value(field, admin=None):
-        #NOTE INPUT VALIDATION NEEDED
-        while True:
-            general_shared_methods.clear_console()
-            if admin:
-                if field == "username":
-                    current = admin.username
-                elif field == "first_name":
-                    current = admin.first_name
-                elif field == "last_name":
-                    current = admin.last_name
-                elif field == "role":
-                    current = admin.role
-                    print(f"Current {field.replace('_', ' ').title()}: {current}")
-                    print("Available roles: system_admin, service_engineer")
-                    print("----------------------------------------------------------------------------")
-                    #NOTE INPUT FIELD
-                    new_value = input(f"Enter new role (or type 'exit' to cancel): ").strip().lower()
-                    general_shared_methods.clear_console()
-                    
-                    if new_value.lower() == 'exit':
-                        print("Exiting update...")
-                        time.sleep(1)
-                        general_shared_methods.clear_console()
-                        return None
-                    
-                    if new_value == '':
-                        print("Role cannot be empty. Please enter a valid role or type 'exit' to cancel.")
-                        time.sleep(1.5)
-                        continue
-                    
-                    return new_value
-                
-                print(f"Current {field.replace('_', ' ').title()}: {current}")
-            print("----------------------------------------------------------------------------")
-            
-            #NOTE INPUT FIELD
-            new_value = input(f"Enter new value for {field} (or type 'exit' to cancel): ").strip()
-            general_shared_methods.clear_console()
-            
-            if new_value.lower() == 'exit':
-                print("Exiting update...")
-                time.sleep(1)
-                general_shared_methods.clear_console()
-                return None
-            
-            if new_value == '':
-                print("Value cannot be empty. Please enter a value or type 'exit' to cancel.")
-                time.sleep(1.5)
-                continue
-            
-            return new_value
-    
-    @staticmethod
     def display_delete_admin(user):
         while True:
             admins = admin_display_methods.search_admin_display(user, update_call=True)
@@ -317,25 +303,21 @@ class admin_display_methods:
                 continue
             
             print("----------------------------------------------------------------------------")
-            #NOTE INPUT FIELD
-            admin_id = input("Enter system administrator ID to delete (or type 'exit' to cancel): ").strip()
+
+            admin_id = InputPrompters.prompt_until_valid(
+                "Enter system administrator ID to delete (or type 'exit' to cancel): ",
+                InputValidators.validate_id,
+                "Invalid administrator ID format. Only letters, numbers, dashes, and underscores are allowed."
+            )
+
             general_shared_methods.clear_console()
             
-            if admin_id.lower() == 'exit':
+            if admin_id is None:
                 print("Exiting deletion...")
                 time.sleep(1)
                 return
             
-            if admin_id == '':
-                print("Administrator ID cannot be empty. Please try again.")
-                time.sleep(1.5)
-                continue
-            
-            admin = None
-            for adm in admins:
-                if adm.id == admin_id:
-                    admin = adm
-                    break
+            admin = next((adm for adm in admins if adm.id == admin_id), None)
             
             if admin is None:
                 print(f"No system administrator found with ID {admin_id}. Please try again.")
@@ -356,8 +338,18 @@ class admin_display_methods:
             user_display_methods.display_user(admin)
             print("----------------------------------------------------------------------------")
             
-            #NOTE INPUT FIELD
-            confirm = input(f"Are you sure you want to delete system administrator {admin.username}? (yes/no): ").strip().lower()
+            confirm = InputPrompters.prompt_until_valid(
+                f"Are you sure you want to delete system administrator {admin.username}? (yes/no): ",
+                InputValidators.validate_yes_no,
+                "Invalid input. Please enter 'yes' or 'no'."
+            )
+
+            general_shared_methods.clear_console()
+
+            if confirm is None or confirm == 'no':
+                print("Deletion cancelled.")
+                time.sleep(1)
+                return True
             
             if confirm == 'yes':
                 if UserLogic.delete_system_admin(user, admin.id):

@@ -2,13 +2,14 @@
 
 from Logic.user_logic import UserLogic
 from Logic.traveller_logic import TravellerLogic
-from Logic.backup_logic import BackupLogic
-from Logic.log_logic import LogLogic
+from Presentation import traveller_display_methods
 from Presentation.scooter_display_methods import scooter_display_methods
 from Presentation.general_shared_methods import general_shared_methods
 from Presentation.user_display_methods import user_display_methods
 from Presentation.engineer_display_methods import engineer_display_methods
-from Presentation.admin_display_methods import admin_display_methods
+from Presentation.backup_display_methods import backup_display_methods
+from Presentation.log_display_methods import log_display_methods
+
 import time
 
 class SystemAdminScreen:
@@ -96,24 +97,40 @@ class SystemAdminScreen:
                     break
 
             elif choice == "9":
-                BackupLogic.restore_backup(user)
+                exit = backup_display_methods.display_restore_backup(user)
+                general_shared_methods.clear_console()
+                print("Returning to menu...")
+                time.sleep(1.5)
 
             elif choice == "10":
-                LogLogic.view_logs(user)
-
+                exit = log_display_methods.display_all_logs(user)
+                general_shared_methods.clear_console()
+                print("Returning to menu...")
+                time.sleep(1.5)
+                        
             elif choice == "11":
-                TravellerLogic.add_traveller(user)
+                exit = traveller_display_methods.display_add_traveller(user)
+                general_shared_methods.clear_console()
+                print("Returning to menu...")
+                time.sleep(1.5)
 
             elif choice == "12":
-                traveller_id = int(input("Enter Traveller ID to modify: "))
-                TravellerLogic.modify_traveller(user, traveller_id)
+                exit = traveller_display_methods.display_modify_traveller(user)
+                general_shared_methods.clear_console()
+                print("Returning to menu...")
+                time.sleep(1.5)
 
             elif choice == "13":
-                traveller_id = int(input("Enter Traveller ID to delete: "))
-                TravellerLogic.delete_traveller(user, traveller_id)
+                exit = traveller_display_methods.display_delete_traveller(user)
+                general_shared_methods.clear_console()
+                print("Returning to menu...")
+                time.sleep(1.5)
 
             elif choice == "14":
-                TravellerLogic.search_traveller(user)
+                exit = traveller_display_methods.display_search_traveller(user)
+                general_shared_methods.clear_console()
+                print("Returning to menu...")
+                time.sleep(1.5)
 
             elif choice == "15":
                 exit = scooter_display_methods.display_add_scooter(user)

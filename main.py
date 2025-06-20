@@ -19,5 +19,5 @@ def clear_and_seed_database():
     time.sleep(2)
 
 if __name__ == "__main__":
-    #clear_and_seed_database()
+    # clear_and_seed_database()
     HomeScreen.display()

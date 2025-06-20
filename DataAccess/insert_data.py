@@ -83,6 +83,61 @@ class InsertData:
             print(f"Error upserting scooter: {e}")
             return False
     
-    def insert_log(self, log) -> bool:
-        #Nog niet gebruikt
-        pass
+    def insert_log_entry(self, username: str, action: str, description: str, suspicious: str, timestamp: str) -> bool:
+        try:
+            with sqlite3.connect(self.db_path) as connection:
+                query = '''
+                    INSERT INTO logs (username, action, description, suspicious, seen, timestamp)
+                    VALUES (?, ?, ?, ?, 'No', ?)
+                '''
+                cursor = connection.cursor()
+                cursor.execute(query, (username, action, description, suspicious, timestamp))
+            return True
+        except Exception as e:
+            print(f"Error inserting log: {e}")
+            return False
+
+    def insert_restore_code(self, code: str, target_admin_id: str, backup_file: str) -> bool:
+        try:
+            with sqlite3.connect(self.db_path) as connection:
+                query = '''
+                    INSERT INTO restore_codes (code, target_admin_id, backup_file, used)
+                    VALUES (?, ?, ?, 0)
+                '''
+                cursor = connection.cursor()
+                cursor.execute(query, (code, target_admin_id, backup_file))
+            return True
+        except Exception as e:
+            print(f"Error inserting restore code: {e}")
+            return False
+
+    def mark_restore_code_as_used(self, code: str) -> bool:
+        try:
+            with sqlite3.connect(self.db_path) as connection:
+                query = '''
+                    UPDATE restore_codes
+                    SET used = 1
+                    WHERE code = ?
+                '''
+                cursor = connection.cursor()
+                cursor.execute(query, (code,))
+                connection.commit()
+                return cursor.rowcount > 0
+        except Exception as e:
+            print(f"Error marking restore code as used: {e}")
+            return False
+
+    def revoke_restore_codes_for_admin(self, target_admin_id: str) -> bool:
+        try:
+            with sqlite3.connect(self.db_path) as connection:
+                query = '''
+                    DELETE FROM restore_codes
+                    WHERE target_admin_id = ? AND used = 0
+                '''
+                cursor = connection.cursor()
+                cursor.execute(query, (target_admin_id,))
+                connection.commit()
+                return cursor.rowcount > 0
+        except Exception as e:
+            print(f"Error revoking restore codes: {e}")
+            return False
