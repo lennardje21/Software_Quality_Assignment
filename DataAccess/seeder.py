@@ -19,9 +19,9 @@ def seed():
 
     # Nog geen password hash en super admin moet hard coded zijn zoals if username.lower() == 'super_admin' and password == 'Admin_123?':
     users = [
-        User(f"{uuid.uuid4()}", 'systemadmin', UserLogic.hash_password('systemadminpass'), 'System', 'Admin', 'system_admin', '01-04-2024'),
-        User(f"{uuid.uuid4()}", 'service', UserLogic.hash_password('servicepass'), 'Service', 'Engineer', 'service_engineer', '02-04-2024'),
-        User(f"{uuid.uuid4()}", 'super_admin', UserLogic.hash_password('Admin_123?'), 'Super', 'Admin', 'super_admin', '03-04-2024'),
+        User(f"{uuid.uuid4()}", 'systemadmin', UserLogic.hash_password('systemadminpass'), 'System', 'Admin', 'system_admin', '2024-04-01', 0),
+        User(f"{uuid.uuid4()}", 'service', UserLogic.hash_password('servicepass'), 'Service', 'Engineer', 'service_engineer', '2024-04-02', 0),
+        User(f"{uuid.uuid4()}", 'super_admin', UserLogic.hash_password('Admin_123?'), 'Super', 'Admin', 'super_admin', '2024-04-03', 0),
     ]
 
     scooters = [

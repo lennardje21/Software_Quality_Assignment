@@ -8,12 +8,16 @@ from Presentation.scooter_display_methods import scooter_display_methods
 from Presentation.general_shared_methods import general_shared_methods
 from Presentation.user_display_methods import user_display_methods
 from Presentation.engineer_display_methods import engineer_display_methods
+from Presentation.admin_display_methods import admin_display_methods
 import time
 
 class SystemAdminScreen:
 
     @staticmethod
     def display(user):
+        if user.must_change_password == 1:
+            if user_display_methods.display_necessary_password_update(user) is False:
+                return
         while True:
             general_shared_methods.clear_console()
             print("----------------------------------------------------------------------------")
@@ -71,14 +75,25 @@ class SystemAdminScreen:
                 time.sleep(1.5)
 
             elif choice == "5":
-                engineer_id = int(input("Enter Service Engineer ID to reset password: "))
-                UserLogic.reset_service_engineer_password(user, engineer_id)
+                exit = user_display_methods.display_reset_password(user, "Service Engineer")
+                general_shared_methods.clear_console()
+                print("Returning to menu...")
+                time.sleep(1.5)
 
             elif choice == "6":
-                UserLogic.update_own_profile(user)
-
+                exit = admin_display_methods.display_update_own_profile(user)
+                general_shared_methods.clear_console()
+                print("Returning to menu...")
+                time.sleep(1.5)
+                
             elif choice == "7":
-                UserLogic.delete_own_account(user)
+                exit = admin_display_methods.display_delete_my_account(user)
+                general_shared_methods.clear_console()
+                if exit:
+                    print("Your account has been deleted. Logging out...")
+                    time.sleep(1)
+                    general_shared_methods.clear_console()
+                    break
 
             elif choice == "9":
                 BackupLogic.restore_backup(user)
@@ -132,12 +147,11 @@ class SystemAdminScreen:
                 time.sleep(1.5)
 
             elif choice == "19":
-                #NOTE NOG MAKEN
                 user_display_methods.display_update_password(user)
 
             elif choice == "20":
-                print("\nLogging out...")
                 general_shared_methods.clear_console()
+                print("\nLogging out...")
                 time.sleep(1)
                 break
 

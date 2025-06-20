@@ -64,7 +64,7 @@ class admin_display_methods:
             general_shared_methods.clear_console()
             user_display_methods.display_user(admin, search_key='', current_user=user)
             print("----------------------------------------------------------------------------")
-            input("Press any key to continue...")
+            general_shared_methods.input_password("Press any key to continue...")
             general_shared_methods.clear_console()
             return True
         else:
@@ -81,16 +81,34 @@ class admin_display_methods:
         
         #NOTE INPUT FIELDS (no type exit and space checking)
         username = input("Enter Username: ").strip()
+        username_passed, error_msg_username = UserLogic.check_username_requirements(username)
+        if not username_passed:
+            general_shared_methods.clear_console()
+            print(error_msg_username)
+            time.sleep(2)
+            general_shared_methods.clear_console()
+            return None
+        
         #NOTE ALS PASSWORD CHECK FAALT RETURN NAAR DIT SCHERM?
-        password = input("Enter Password: ").strip()
+        password = general_shared_methods.input_password("Enter Password: ").strip()
         passed, error_msg = UserLogic.check_password_requirements(password)
         if not passed:
             general_shared_methods.clear_console()
             print(error_msg)
             time.sleep(2)
+            general_shared_methods.clear_console()
             return None
+        
+        # Add confirmation password check
+        password_confirm = general_shared_methods.input_password("Confirm Password: ").strip()
+        if password != password_confirm:
+            general_shared_methods.clear_console()
+            print("Passwords do not match. Please try again.")
+            time.sleep(2)
+            general_shared_methods.clear_console()
+            return None
+        
         password = UserLogic.hash_password(password)
-
         first_name = input("Enter First Name: ").strip()
         last_name = input("Enter Last Name: ").strip()
         
@@ -109,7 +127,6 @@ class admin_display_methods:
         
         return admin
 
-    
     @staticmethod
     def display_update_admin(user):
         while True:
@@ -118,7 +135,7 @@ class admin_display_methods:
                 return
             if admins is False:
                 continue
-            
+        
             print("----------------------------------------------------------------------------")
             #NOTE INPUT FIELD
             admin_id = input("Enter system administrator ID to update (or type 'exit' to cancel): ").strip()
@@ -152,12 +169,15 @@ class admin_display_methods:
                 break
     
     @staticmethod
-    def update_admin_fully(admin, user):
+    def update_admin_fully(admin, user, update_own_account=False):
         editable_fields = [
             "username",
             "first_name",
             "last_name"
         ]
+        
+        if user.role == "super_admin":
+            editable_fields.append("role")
         
         while True:
             field = admin_display_methods.prompt_for_admin_field(admin, user, editable_fields)
@@ -170,13 +190,31 @@ class admin_display_methods:
             
             general_shared_methods.clear_console()
             if field == "username":
+                # Add username validation using existing method
+                username_passed, error_msg = UserLogic.check_username_requirements(new_value)
+                if not username_passed:
+                    print(error_msg)
+                    time.sleep(2)
+                    general_shared_methods.clear_console()
+                    continue
+                
                 admin.username = new_value
             elif field == "first_name":
                 admin.first_name = new_value
             elif field == "last_name":
                 admin.last_name = new_value
+            elif field == "role" and user.role == "super_admin":
+                # Validate the role value
+                #NOTE FIXEN
+                valid_roles = ["system_admin", "service_engineer"]
+                if new_value not in valid_roles:
+                    print(f"Invalid role '{new_value}'. Valid roles are: {', '.join(valid_roles)}")
+                    time.sleep(2)
+                    general_shared_methods.clear_console()
+                    continue
+                admin.role = new_value
             
-            if UserLogic.modify_system_admin(user, admin):
+            if UserLogic.modify_system_admin(user, admin, update_own_account):
                 print(f"Updated {field.replace('_', ' ').title()} for administrator {admin.username}.")
                 time.sleep(2)
                 general_shared_methods.clear_console()
@@ -192,9 +230,9 @@ class admin_display_methods:
         while True:
             general_shared_methods.clear_console()
             print("----------------------------------------------------------------------------")
-            print("|" + "Update System Administrator Data".center(75) + "|")
+            print("|" + "Update User Data".center(75) + "|")
             print("----------------------------------------------------------------------------")
-            user_display_methods.display_user(admin, current_user=user)
+            user_display_methods.display_user(admin, search_key=None, current_user=user)
             print("----------------------------------------------------------------------------")
             print("Enter the field you want to update or type 'exit' to cancel. Use '_' for spaces.")
             
@@ -217,6 +255,7 @@ class admin_display_methods:
     
     @staticmethod
     def prompt_for_admin_value(field, admin=None):
+        #NOTE INPUT VALIDATION NEEDED
         while True:
             general_shared_methods.clear_console()
             if admin:
@@ -226,6 +265,28 @@ class admin_display_methods:
                     current = admin.first_name
                 elif field == "last_name":
                     current = admin.last_name
+                elif field == "role":
+                    current = admin.role
+                    print(f"Current {field.replace('_', ' ').title()}: {current}")
+                    print("Available roles: system_admin, service_engineer")
+                    print("----------------------------------------------------------------------------")
+                    #NOTE INPUT FIELD
+                    new_value = input(f"Enter new role (or type 'exit' to cancel): ").strip().lower()
+                    general_shared_methods.clear_console()
+                    
+                    if new_value.lower() == 'exit':
+                        print("Exiting update...")
+                        time.sleep(1)
+                        general_shared_methods.clear_console()
+                        return None
+                    
+                    if new_value == '':
+                        print("Role cannot be empty. Please enter a valid role or type 'exit' to cancel.")
+                        time.sleep(1.5)
+                        continue
+                    
+                    return new_value
+                
                 print(f"Current {field.replace('_', ' ').title()}: {current}")
             print("----------------------------------------------------------------------------")
             
@@ -318,3 +379,52 @@ class admin_display_methods:
                 print("Invalid input. Please enter 'yes' or 'no'.")
                 time.sleep(1.5)
 
+    @staticmethod
+    def display_delete_my_account(user):
+        general_shared_methods.clear_console()
+        if user_display_methods.verify_identity(user, "delete your account") is None:
+                return False
+        while True:
+            general_shared_methods.clear_console()
+            
+            print("----------------------------------------------------------------------------")
+            print("|" + "Delete My Account".center(75) + "|")
+            print("----------------------------------------------------------------------------")
+            confirm = input(f"Are you sure you want to delete your account {user.username}? (yes/no): ").strip().lower()
+            general_shared_methods.clear_console()
+            
+            if confirm == 'yes':
+                if UserLogic.delete_system_admin(user, user.id, delete_own_account=True):
+                    print("Your account has been deleted successfully.")
+                    time.sleep(2)
+                    return True
+                else:
+                    print("Failed to delete your account. Please try again later.")
+                    time.sleep(2)
+                    return False
+            elif confirm == 'no':
+                print("Account deletion cancelled.")
+                time.sleep(1.5)
+                return False
+            else:
+                print("Invalid input. Please enter 'yes' or 'no'.")
+                time.sleep(1.5)
+                continue
+    
+    @staticmethod
+    def display_update_own_profile(user):
+        general_shared_methods.clear_console()
+        if user_display_methods.verify_identity(user, "update your profile") is None:
+                return False
+        
+        while True:
+            general_shared_methods.clear_console()
+            updated = admin_display_methods.update_admin_fully(user, user, update_own_account=True)
+            if updated is True:
+                return False
+            else:
+                print("Your profile has been updated successfully.")
+                time.sleep(1)
+                return True
+            
+ 

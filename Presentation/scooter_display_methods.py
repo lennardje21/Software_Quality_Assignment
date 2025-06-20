@@ -286,7 +286,7 @@ class scooter_display_methods:
             general_shared_methods.clear_console()
             scooter_display_methods.display_scooter(scooter)
             print("----------------------------------------------------------------------------")
-            input("Press any key to continue...")
+            general_shared_methods.input_password("Press any key to continue...")
             general_shared_methods.clear_console()
             return True
         else:

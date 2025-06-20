@@ -1,4 +1,4 @@
-import os, re
+import os, re, getpass
 class general_shared_methods:
     @staticmethod
     def clear_console():
@@ -10,4 +10,10 @@ class general_shared_methods:
             return str(value)
         value_str = str(value)
         pattern = re.compile(re.escape(search_key), re.IGNORECASE)
-        return pattern.sub(lambda m: f'\033[91m{m.group(0)}\033[0m', value_str)
+        return pattern.sub(lambda m: f'\033[92m{m.group(0)}\033[0m', value_str)
+    
+    
+    @staticmethod
+    def input_password(prompt="Password: "):
+        # Let getpass handle everything - it already masks input and shows the prompt
+        return getpass.getpass(prompt)

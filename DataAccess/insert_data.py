@@ -40,13 +40,13 @@ class InsertData:
                 query = '''
                     INSERT OR REPLACE INTO users (
                         UserID, UserName, PasswordHash, 
-                        FirstName, LastName, Role, RegistrationDate
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                        FirstName, LastName, Role, RegistrationDate, MustChangePassword
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 '''
                 cursor = connection.cursor()
                 cursor.execute(query, [
                     user.id, user.username, user.password_hash,
-                    user.first_name, user.last_name, user.role, user.registration_date
+                    user.first_name, user.last_name, user.role, user.registration_date, user.must_change_password
                 ])
             return True
         except Exception as e:
