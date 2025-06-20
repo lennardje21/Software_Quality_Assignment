@@ -1,4 +1,3 @@
-# main.py
 from Presentation.home_screen import HomeScreen
 from DataAccess.create_tables import create_tables
 from DataAccess.seeder import seed
@@ -9,6 +8,7 @@ import time, os, sys
 
 # Ensure the parent directory is in the Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 def clear_and_seed_database():
     deleteData = DeleteData()
     deleteData.clear_database()
@@ -19,5 +19,4 @@ def clear_and_seed_database():
     time.sleep(2)
 
 if __name__ == "__main__":
-    # clear_and_seed_database()
     HomeScreen.display()

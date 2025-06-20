@@ -77,7 +77,6 @@ class user_display_methods:
                 from DataModels.user import ROLES_HIERARCHY
                 viewer_role_level = ROLES_HIERARCHY.get(current_user.role, 0)
                 user_role_level = ROLES_HIERARCHY.get(user.role, 0)
-                # Check if viewing own profile (same object) OR has higher role
                 is_editable = (current_user.id == user.id) or (viewer_role_level > user_role_level)
                 role_editable = current_user.role == "super_admin" and viewer_role_level > user_role_level
             
@@ -141,7 +140,6 @@ class user_display_methods:
             print("Your password has been successfully updated.")
             time.sleep(1.5)
 
-            # ✅ Log the password update
             LogLogic.add_log_to_database(
                 username=user.username,
                 action="Update Password",
@@ -193,18 +191,15 @@ class user_display_methods:
 
     @staticmethod
     def display_reset_password(user, prompt):
-        """Main method to handle the password reset flow"""
         general_shared_methods.clear_console()
         if user_display_methods.verify_identity(user, f"reset {prompt} password") is None:
             return False
         general_shared_methods.clear_console()
         
-        # Find target user
         target_user = user_display_methods._find_target_user_for_reset(user, prompt)
         if target_user is None:
             return False
         
-        # Reset password for found user
         return user_display_methods._perform_password_reset(user, target_user, prompt)
 
     @staticmethod

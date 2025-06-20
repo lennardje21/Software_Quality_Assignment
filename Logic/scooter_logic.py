@@ -1,4 +1,3 @@
-# Logic/scooter_logic.py
 from DataAccess.get_data import GetData
 from DataModels.user import User
 from DataAccess.insert_data import InsertData
@@ -15,7 +14,6 @@ class ScooterLogic:
                     state_of_charge, target_soc_min, target_soc_max, 
                     latitude, longitude, out_of_service_status, mileage, 
                     last_maintenance_date):
-        #NOTE IN_SERVICE_DATE IS SET TO CURRENT DATE
         if user.is_authorized("system_admin"):
             scooter = Scooter(str(uuid.uuid4()), brand, model, serial_number, 
                               top_speed, battery_capacity, state_of_charge, 

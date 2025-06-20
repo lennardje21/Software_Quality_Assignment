@@ -1,5 +1,3 @@
-# Logic/backup_logic.py
-
 import os, shutil, uuid
 from datetime import datetime
 from DataAccess.get_data import GetData

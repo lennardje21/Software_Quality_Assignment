@@ -1,6 +1,4 @@
-# Presentation/home_screen.py
-
-import sqlite3, time
+import time
 from Presentation.log_display_methods import log_display_methods
 from Presentation.service_engineer_screen import ServiceEngineerScreen
 from Presentation.system_admin_screen import SystemAdminScreen
@@ -24,7 +22,6 @@ class HomeScreen:
 
             if failed_attempts >= HomeScreen.MAX_ATTEMPTS:
                 print("\nToo many failed login attempts. The program is locked.")
-                # Log as suspicious activity
                 LogLogic.add_log_to_database("Unknown", "Login Attempt", "Exceeded maximum login attempts", suspicious="Yes")
                 break
 
@@ -44,7 +41,7 @@ class HomeScreen:
                     LogLogic.add_log_to_database(user.username, "Login", "User logged in successfully", suspicious="No")
 
                     print(f"\nLogin successful! Logged in as {user.role}.\n")
-                    failed_attempts = 0  # Reset attempts
+                    failed_attempts = 0 
 
                     if user.role in ["super_admin", "system_admin"]:
                         log_display_methods.display_unread_suspicious_logs(user)

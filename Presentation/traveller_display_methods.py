@@ -1,5 +1,3 @@
-# Presentation/traveller_display_methods.py
-
 from Helpers.input_validators import InputValidators
 from Helpers.input_prompters import InputPrompters
 from Logic.traveller_logic import TravellerLogic
@@ -164,11 +162,9 @@ class traveller_display_methods:
                 while True:
                     entry = input(f"{label} [{current}]: ").strip()
                     
-                    # If user presses Enter, keep current value
                     if entry == '':
                         return current
 
-                    # Validate entry
                     is_valid = validator(entry, *args) if args else validator(entry)
                     if is_valid:
                         return entry
@@ -214,7 +210,6 @@ class traveller_display_methods:
         print("|" + "Search for Traveller".center(75) + "|")
         print("----------------------------------------------------------------------------")
 
-        # Get validated search input
         search_key = InputPrompters.prompt_until_valid(
             prompt_msg="Enter a search key (name, email, license, etc.) or type 'exit' to go back: ",
             validate_func=InputValidators.validate_search_key,
@@ -278,7 +273,6 @@ class traveller_display_methods:
                 time.sleep(2)
                 continue
 
-            # Confirm deletion
             general_shared_methods.clear_console()
             print("----------------------------------------------------------------------------")
             print("|" + "Delete Traveller".center(75) + "|")

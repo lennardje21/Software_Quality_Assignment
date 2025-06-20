@@ -1,5 +1,3 @@
-# Presentation/log_display_methods.py
-
 from Logic.log_logic import LogLogic
 from Presentation.general_shared_methods import general_shared_methods
 from tabulate import tabulate

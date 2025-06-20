@@ -1,5 +1,3 @@
-# Presentation/super_admin_screen.py
-
 from Presentation.admin_display_methods import admin_display_methods
 from Presentation.traveller_display_methods import traveller_display_methods
 from Presentation.backup_display_methods import backup_display_methods
@@ -45,7 +43,6 @@ class SuperAdminScreen:
             print("[23] Logout")
             print("----------------------------------------------------------------------------")
 
-            #NOTE INPUT FIELD
             choice = input("Choose an option: ")
 
             exit = False

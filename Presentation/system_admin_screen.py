@@ -1,7 +1,3 @@
-# Presentation/system_admin_screen.py
-
-from Logic.user_logic import UserLogic
-from Logic.traveller_logic import TravellerLogic
 from Presentation.admin_display_methods import admin_display_methods
 from Presentation.traveller_display_methods import traveller_display_methods
 from Presentation.scooter_display_methods import scooter_display_methods
@@ -48,7 +44,6 @@ class SystemAdminScreen:
             print("[20] Logout")
             print("----------------------------------------------------------------------------")
 
-            #NOTE INPUT FIELD
             choice = input("Choose an option: ")
 
             exit = False

@@ -1,5 +1,3 @@
-# Logic/traveller_logic.py
-
 from DataModels.user import User
 from DataModels.traveller import Traveller
 from DataAccess.insert_data import InsertData
@@ -20,7 +18,7 @@ class TravellerLogic:
     def update_traveller(user: User, traveller: Traveller) -> bool:
         if not user.is_authorized("system_admin"):
             return False
-        return InsertData().insert_traveller(traveller)  # Upsert behavior
+        return InsertData().insert_traveller(traveller)
 
     @staticmethod
     def delete_traveller(user: User, traveller_id: str) -> bool:
@@ -54,7 +52,6 @@ class TravellerLogic:
 
     @staticmethod
     def create_traveller_from_input() -> Traveller | None:
-
         try:
             print("Please enter traveller details (leave blank to cancel):")
             first = input("First Name: ").strip()

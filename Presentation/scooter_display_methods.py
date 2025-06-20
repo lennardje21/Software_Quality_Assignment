@@ -278,10 +278,9 @@ class scooter_display_methods:
             )
 
             if new_value is None:
-                continue  # back to field selection
+                continue
 
             general_shared_methods.clear_console()
-            #NOTE TYPE CHECKING AND ASSIGNING
             scooter_display_methods.update_scooter(scooter, field, new_value, user)
             print(f"Updated {prompt_label} for scooter {scooter.id}.")
             time.sleep(2)
@@ -343,8 +342,8 @@ class scooter_display_methods:
                         description=f"Cancelled deletion of scooter with ID {scooter.id}.",
                         suspicious="No"
                     )
-                    break  # prevent looping on confirmation
-            break  # Exit the outer loop after a valid attempt
+                    break 
+            break
 
     @staticmethod
     def display_delete_scooter_confirm(scooter, user):
@@ -449,7 +448,7 @@ class scooter_display_methods:
         
         print("Type 'exit' at any prompt to cancel.")
 
-        p = InputPrompters.prompt_until_valid()
+        p = InputPrompters.prompt_until_valid
         
         brand = p("Enter Brand: ", InputValidators.validate_alphanumeric, "Invalid brand name.")
         if brand is None: return None
@@ -563,12 +562,11 @@ class scooter_display_methods:
                 return False
 
             general_shared_methods.clear_console()
-            #NOTE TYPE CHECKING AND ASSIGNING
             scooter_display_methods.update_scooter(scooter, field, new_value, user)
             print(f"Updated {field.replace('_', ' ').title()} for scooter {scooter.id}.")
             time.sleep(2)
             general_shared_methods.clear_console()
-            return False  # Return to previous menu after one update
+            return False
 
     @staticmethod
     def prompt_for_field(scooter, user, editable_fields, field_aliases):
@@ -600,10 +598,8 @@ class scooter_display_methods:
                 time.sleep(1.5)
                 continue
 
-            # Normalize and resolve alias if needed
             resolved_field = field_aliases.get(field_input, field_input)
 
-            # Compute valid resolved fields
             valid_resolved_fields = [field_aliases.get(f, f) for f in editable_fields]
 
             if resolved_field not in valid_resolved_fields:

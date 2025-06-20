@@ -1,5 +1,3 @@
-# Presentation/service_engineer_screen.py
-
 from Presentation.general_shared_methods import general_shared_methods
 from Presentation.scooter_display_methods import scooter_display_methods
 from Presentation.user_display_methods import user_display_methods
@@ -25,7 +23,6 @@ class ServiceEngineerScreen:
             print("[4] Logout")
             print("----------------------------------------------------------------------------")
 
-            #NOTE INPUT FIELD
             choice = input("Choose an option: ")
             general_shared_methods.clear_console()
             exit = False
@@ -45,7 +42,6 @@ class ServiceEngineerScreen:
                     if exit is True:
                         break
                     elif exit is None:
-                        #NOTE INPUT FIELD
                         print("----------------------------------------------------------------------------")
                         general_shared_methods.input_password("Press any key to continue...")
                         break

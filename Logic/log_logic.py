@@ -1,5 +1,3 @@
-# Logic/log_logic.py
-
 from datetime import datetime
 from DataAccess.insert_data import InsertData
 from DataAccess.get_data import GetData

@@ -1,5 +1,3 @@
-# Logic/user_logic.py
-
 from DataModels.user import User
 from DataAccess.insert_data import InsertData
 from DataAccess.get_data import GetData
@@ -79,7 +77,6 @@ class UserLogic:
 
     @staticmethod
     def update_own_password(user: User, new_password: str):
-        #NOTE Misschien try and except?
         insertData = InsertData()
         user.password_hash = new_password
         insertData.insert_user(user)
@@ -131,33 +128,28 @@ class UserLogic:
 
     @staticmethod
     def check_username_requirements(username: str) -> tuple[bool, str]:
-        # 1) Length: 8–10 chars
         if len(username) < 8:
             return False, "Username must be at least 8 characters long."
+        
         if len(username) > 10:
             return False, "Username must be no more than 10 characters long."
 
-        # 2) Must start with letter or underscore
         if not re.match(r'^[A-Za-z_]', username):
             return False, "Username must start with a letter or underscore (_)."
 
-        # 3) Only allowed characters: letters, digits, underscore, apostrophe, period
         if not re.match(r"^[A-Za-z0-9_\.\\']+$", username):
             return False, (
                 "Username can only contain letters, numbers, underscores (_), apostrophes ('), and periods (.)"
             )
 
-        # 4) All good
         return True, ""
     @staticmethod
     def generate_temporary_password(length=12):
-
         lower = string.ascii_lowercase
         upper = string.ascii_uppercase
         digits = string.digits
         special = "~!@#$%&_-+=`|\\(){}[]:;'<>,.?/"
 
-        # Ensure at least one of each
         password_chars = [
             random.choice(lower),
             random.choice(upper),
@@ -165,11 +157,9 @@ class UserLogic:
             random.choice(special),
         ]
 
-        # Fill the rest
         all_chars = lower + upper + digits + special
         password_chars += random.choices(all_chars, k=length - 4)
-
-        # Shuffle to avoid predictable sequences
+        
         random.shuffle(password_chars)
 
         return ''.join(password_chars)
@@ -199,10 +189,7 @@ class UserLogic:
     def authenticate_user(username, password_hash):
         try:
             getData = GetData()
-            # Get all users, which will be decrypted by GetData
             users = getData.get_all_users()
-            
-            # Compare case-insensitive with decrypted usernames
             for user in users:
                 if user.username.lower() == username.lower() and user.password_hash == password_hash:
                     return user
@@ -220,7 +207,6 @@ class UserLogic:
             import uuid, time
             user_id = str(uuid.uuid4())
             registration_date = time.strftime("%Y-%m-%d")
-            #NOTE HASH PASSWORD
             new_admin = User(user_id, username, password, first_name, last_name, "system_admin", registration_date)
             return new_admin
         else:
@@ -263,7 +249,6 @@ class UserLogic:
         else:
             return None
 
-    # check
     @staticmethod
     def username_exists(user: User, username: str) -> bool:
         if user.is_authorized("super_admin"):

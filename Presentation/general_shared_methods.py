@@ -15,5 +15,4 @@ class general_shared_methods:
     
     @staticmethod
     def input_password(prompt="Password: "):
-        # Let getpass handle everything - it already masks input and shows the prompt
         return getpass.getpass(prompt)

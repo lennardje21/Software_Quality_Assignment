@@ -1,5 +1,3 @@
-# Presentation/backup_display_methods.py
-
 from Logic.backup_logic import BackupLogic
 from Logic.log_logic import LogLogic
 from Presentation.general_shared_methods import general_shared_methods
@@ -326,7 +324,6 @@ class backup_display_methods:
         general_shared_methods.input_password("Press any key to continue...")
         general_shared_methods.clear_console()
 
-    # Presentation/your_display_module.py
 
     @staticmethod
     def display_revoke_restore_code(user):
