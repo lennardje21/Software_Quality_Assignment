@@ -403,3 +403,23 @@ class GetData:
             # Sort by last name
             result.sort(key=lambda x: x[2])  # Sort by LastName
             return result
+
+    def get_unused_restore_codes_for_admin(self, target_admin_id: str) -> list[tuple[str, str]]:
+        try:
+            with sqlite3.connect(self.db_path) as connection:
+                cursor = connection.cursor()
+                cursor.execute("SELECT code, target_admin_id, backup_file FROM restore_codes WHERE used = 0")
+                rows = cursor.fetchall()
+
+                decrypted = []
+                for enc_code, enc_admin_id, enc_backup_file in rows:
+                    decrypted_admin_id = self.cryptography.decrypt(enc_admin_id)
+                    if decrypted_admin_id == target_admin_id:
+                        code = self.cryptography.decrypt(enc_code)
+                        backup_file = self.cryptography.decrypt(enc_backup_file)
+                        decrypted.append((code, backup_file))
+
+                return decrypted
+        except Exception as e:
+            print(f"Error retrieving restore codes: {e}")
+            return []

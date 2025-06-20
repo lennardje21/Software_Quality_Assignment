@@ -53,13 +53,13 @@ class BackupLogic:
         insert = InsertData()
         return insert.insert_restore_code(code, target_admin_id, backup_file)
 
-
     @staticmethod
-    def revoke_restore_code(user: User, target_admin_id: str) -> bool:
+    def revoke_restore_code_by_code(user: User, code: str) -> bool:
         if not user.is_authorized("super_admin"):
             return False
         delete = DeleteData()
-        return delete.revoke_restore_codes_for_admin(target_admin_id)
+        return delete.revoke_restore_code_by_code(code)
+
 
     @staticmethod
     def get_backup_list() -> list[str]:

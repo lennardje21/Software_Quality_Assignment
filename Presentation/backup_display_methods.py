@@ -326,6 +326,8 @@ class backup_display_methods:
         general_shared_methods.input_password("Press any key to continue...")
         general_shared_methods.clear_console()
 
+    # Presentation/your_display_module.py
+
     @staticmethod
     def display_revoke_restore_code(user):
         general_shared_methods.clear_console()
@@ -339,12 +341,6 @@ class backup_display_methods:
 
         if not admins:
             print("No system administrators found.")
-            LogLogic.add_log_to_database(
-                user.username,
-                "Revoke Restore Code",
-                "Attempted to revoke restore codes but no system admins were found.",
-                suspicious="Yes"
-            )
             input("\nPress any key to continue...")
             general_shared_methods.clear_console()
             return
@@ -354,63 +350,52 @@ class backup_display_methods:
             print(f"{idx}. {first} {last} ({username})")
 
         try:
-            choice = int(input("\nSelect an admin to revoke restore codes from (0 to cancel): "))
+            choice = int(input("\nSelect an admin to revoke a restore code from (0 to cancel): "))
             if choice == 0:
                 print("Operation cancelled.")
-                LogLogic.add_log_to_database(
-                    user.username,
-                    "Revoke Restore Code",
-                    "User cancelled the revoke restore code operation.",
-                    suspicious="No"
-                )
                 time.sleep(1.5)
                 general_shared_methods.clear_console()
                 return
-
             if not (1 <= choice <= len(admins)):
                 print("Invalid selection.")
-                LogLogic.add_log_to_database(
-                    user.username,
-                    "Revoke Restore Code",
-                    f"Invalid selection index: {choice}.",
-                    suspicious="No"
-                )
                 time.sleep(1.5)
                 return
 
             target_admin_id = admins[choice - 1][0]
-            target_admin_username = admins[choice - 1][3]
-
         except ValueError:
             print("Invalid input. Please enter a number.")
-            LogLogic.add_log_to_database(
-                user.username,
-                "Revoke Restore Code",
-                "Non-integer input while selecting system admin.",
-                suspicious="No"
-            )
             time.sleep(1.5)
             return
 
-        result = BackupLogic.revoke_restore_code(user, target_admin_id)
-        if result:
-            print(f"\nRestore codes successfully revoked for admin '{target_admin_username}'.")
-            LogLogic.add_log_to_database(
-                user.username,
-                "Restore Code Revoked",
-                f"Restore codes revoked for admin '{target_admin_username}'.",
-                suspicious="No"
-            )
-        else:
-            print("\nFailed to revoke restore codes. Please check your permissions or try again.")
-            LogLogic.add_log_to_database(
-                user.username,
-                "Restore Code Revoke Failed",
-                f"Failed attempt to revoke restore codes for admin '{target_admin_username}'.",
-                suspicious="Yes"
-            )
+        codes = get.get_unused_restore_codes_for_admin(target_admin_id)
+        if not codes:
+            print("No unused restore codes found for this admin.")
+            time.sleep(2)
+            return
+
+        print("\nAvailable Restore Codes:")
+        for idx, (code, backup_file) in enumerate(codes, 1):
+            print(f"{idx}. Code: {code} | Backup File: {backup_file}")
+
+        try:
+            code_choice = int(input("\nSelect a restore code to revoke (0 to cancel): "))
+            if code_choice == 0:
+                print("Operation cancelled.")
+                return
+            if 1 <= code_choice <= len(codes):
+                selected_code = codes[code_choice - 1][0]
+                from Logic.backup_logic import BackupLogic
+                success = BackupLogic.revoke_restore_code_by_code(user, selected_code)
+                if success:
+                    print(f"Restore code '{selected_code}' has been successfully revoked.")
+                else:
+                    print("Failed to revoke restore code.")
+            else:
+                print("Invalid code selection.")
+        except ValueError:
+            print("Invalid input. Please enter a number.")
 
         print("----------------------------------------------------------------------------")
-        general_shared_methods.input_password("Press any key to continue...")
+        input("Press any key to continue...")
         general_shared_methods.clear_console()
 
