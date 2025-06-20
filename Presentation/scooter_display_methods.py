@@ -1,6 +1,7 @@
 import time
 from Helpers.input_prompters import InputPrompters
 from Helpers.input_validators import InputValidators
+from Logic.log_logic import LogLogic
 from Logic.scooter_logic import ScooterLogic
 from Presentation.general_shared_methods import general_shared_methods
 
@@ -60,15 +61,29 @@ class scooter_display_methods:
 
         if search_key is None:
             print("Exiting search...")
+            LogLogic.add_log_to_database(
+                username=user.username,
+                action="Search Scooter",
+                description="Scooter search cancelled by user.",
+                suspicious="No"
+            )
             time.sleep(1)
             general_shared_methods.clear_console()
             return True
-        
+
         general_shared_methods.clear_console()
         scooters = ScooterLogic.search_scooter(user, search_key)
 
         if scooters and len(scooters) > 0:
-            print(f"\nFound {len(scooters)} scooter(s) matching '{general_shared_methods.highlight(search_key, search_key)}':")
+            log_msg = f"Found {len(scooters)} scooters matching '{search_key}'"
+            LogLogic.add_log_to_database(
+                username=user.username,
+                action="Search Scooter",
+                description=log_msg,
+                suspicious="No"
+            )
+
+            print(f"\n{log_msg}:")
             time.sleep(1)
             for count, scooter in enumerate(scooters, 1):
                 print("----------------------------------------------------------------------------")
@@ -79,6 +94,12 @@ class scooter_display_methods:
                 return scooters
             return None
         else:
+            LogLogic.add_log_to_database(
+                username=user.username,
+                action="Search Scooter",
+                description=f"No scooters found for search key: '{search_key}'",
+                suspicious="No"
+            )
             print("No scooters found matching the search criteria.")
             time.sleep(2)
             general_shared_methods.clear_console()
@@ -86,7 +107,6 @@ class scooter_display_methods:
 
     @staticmethod
     def display_update_scooter(user):
-        #Scooter zoeken
         while True:
             scooters = scooter_display_methods.search_scooter_display(user, update_call=True)
             if scooters is True:
@@ -94,7 +114,6 @@ class scooter_display_methods:
             if scooters is False:
                 continue 
             
-            #Scooter id invoeren
             print("----------------------------------------------------------------------------")
             scooter_id = InputPrompters.prompt_until_valid(
                 "Enter scooter ID number to update (or type 'exit' to cancel): #",
@@ -105,22 +124,34 @@ class scooter_display_methods:
 
             if scooter_id is None:
                 print("Exiting update...")
+                LogLogic.add_log_to_database(
+                    username=user.username,
+                    action="Update Scooter",
+                    description="Scooter update cancelled by user.",
+                    suspicious="No"
+                )
                 time.sleep(1)
                 return
-            if scooter_id == '':
-                print("Scooter ID cannot be empty. Please try again.")
-                time.sleep(1.5)
-                continue
-                
-            #Scooter uit Db pakken
+
             scooter = ScooterLogic.find_scooter_by_id(scooters, scooter_id)
             if scooter is None:
                 print(f"No scooter found with ID {scooter_id}. Please try again.")
+                LogLogic.add_log_to_database(
+                    username=user.username,
+                    action="Update Scooter",
+                    description=f"Tried updating non-existent scooter ID: {scooter_id}",
+                    suspicious="No"
+                )
                 time.sleep(2)
                 continue
-                
-            #User rol bekijken
+
             if user.role == "service_engineer":
+                LogLogic.add_log_to_database(
+                    username=user.username,
+                    action="Update Scooter",
+                    description=f"Partial update started for scooter ID: {scooter_id}",
+                    suspicious="No"
+                )
                 while True:
                     exit_update = scooter_display_methods.partial_update_scooter_display(scooter, user)
                     if exit_update:
@@ -129,6 +160,12 @@ class scooter_display_methods:
                         break
                 break
             else:
+                LogLogic.add_log_to_database(
+                    username=user.username,
+                    action="Update Scooter",
+                    description=f"Full update started for scooter ID: {scooter_id}",
+                    suspicious="No"
+                )
                 while True:
                     exit_update = scooter_display_methods.update_scooter_fully(scooter, user)
                     if exit_update:
@@ -163,14 +200,26 @@ class scooter_display_methods:
     @staticmethod
     def update_scooter(scooter, field, value, user):
         ScooterLogic.assign_right_types(scooter, field, value)
-        #NOTE Field waardes moeten geparsed naar de juiste types en gevalideerd worden
+        
         if ScooterLogic.update_scooter_partial(user, scooter):
+            LogLogic.add_log_to_database(
+                username=user.username,
+                action="Update Scooter",
+                description=f"Field '{field}' updated for scooter ID {scooter.id}.",
+                suspicious="No"
+            )
             return True
         else:
             print("Failed to update scooter. Please check your permissions or the field you are trying to update.")
+            LogLogic.add_log_to_database(
+                username=user.username,
+                action="Update Scooter",
+                description=f"Failed to update field '{field}' for scooter ID {scooter.id}.",
+                suspicious="No"
+            )
             time.sleep(2)
             return False
-    
+   
     @staticmethod
     def update_scooter_fully(scooter, user):
         editable_fields = [
@@ -265,18 +314,38 @@ class scooter_display_methods:
             scooter = ScooterLogic.find_scooter_by_id(scooters, scooter_id)
             if scooter is None:
                 print(f"No scooter found with ID {scooter_id}. Please try again.")
+                LogLogic.add_log_to_database(
+                    username=user.username,
+                    action="Delete Scooter",
+                    description=f"Attempted to delete non-existent scooter with ID {scooter_id}.",
+                    suspicious="No"
+                )
                 time.sleep(2)
                 continue
 
             while True:
                 exit_update = scooter_display_methods.display_delete_scooter_confirm(scooter, user)
                 if exit_update == True:
+                    LogLogic.add_log_to_database(
+                        username=user.username,
+                        action="Delete Scooter",
+                        description=f"Deleted scooter with ID {scooter.id}.",
+                        suspicious="No"
+                    )
                     general_shared_methods.clear_console()
                     print("Exiting Deletion...")
                     time.sleep(1)
                     break
-            break  # Exit the outer loop after successful deletion
-                
+                else:
+                    LogLogic.add_log_to_database(
+                        username=user.username,
+                        action="Delete Scooter",
+                        description=f"Cancelled deletion of scooter with ID {scooter.id}.",
+                        suspicious="No"
+                    )
+                    break  # prevent looping on confirmation
+            break  # Exit the outer loop after a valid attempt
+
     @staticmethod
     def display_delete_scooter_confirm(scooter, user):
         general_shared_methods.clear_console()
@@ -330,6 +399,12 @@ class scooter_display_methods:
 
         if scooter is None:
             print("Scooter creation cancelled.")
+            LogLogic.add_log_to_database(
+                username=user.username,
+                action="Add Scooter",
+                description="Scooter creation cancelled by user.",
+                suspicious="No"
+            )
             time.sleep(1.5)
             return False
         
@@ -338,6 +413,12 @@ class scooter_display_methods:
         general_shared_methods.clear_console()
         if success:
             print(f"Scooter {scooter.id} has been added successfully.")
+            LogLogic.add_log_to_database(
+                username=user.username,
+                action="Add Scooter",
+                description=f"Scooter with ID {scooter.id} was added successfully.",
+                suspicious="No"
+            )
             time.sleep(2)
             general_shared_methods.clear_console()
             print("----------------------------------------------------------------------------")
@@ -350,9 +431,15 @@ class scooter_display_methods:
             return True
         else:
             print("Failed to add scooter. Please check your permissions.")
+            LogLogic.add_log_to_database(
+                username=user.username,
+                action="Add Scooter",
+                description=f"Attempted to add scooter with ID {scooter.id} but failed.",
+                suspicious="No"
+            )
             time.sleep(2)
             return False
-    
+
     @staticmethod
     def prompt_for_new_scooter_details(user):
         general_shared_methods.clear_console()

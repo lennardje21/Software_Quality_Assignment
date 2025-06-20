@@ -85,11 +85,7 @@ def create_tables():
         timestamp TEXT NOT NULL
     );
     '''
-    
 
-    
-    
-    #create_logs_table = None #Nog doen
 
     cursor = connection.cursor()
     cursor.execute(create_travellers_table)

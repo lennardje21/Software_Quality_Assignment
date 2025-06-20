@@ -1,11 +1,13 @@
 # Presentation/home_screen.py
 
 import sqlite3, time
+from Presentation.log_display_methods import log_display_methods
 from Presentation.service_engineer_screen import ServiceEngineerScreen
 from Presentation.system_admin_screen import SystemAdminScreen
 from Presentation.super_admin_screen import SuperAdminScreen
-from Logic.user_logic import UserLogic
 from Presentation.general_shared_methods import general_shared_methods
+from Logic.user_logic import UserLogic
+from Logic.log_logic import LogLogic
 
 db_path = 'Database/urbanmobility.db'
 
@@ -22,6 +24,8 @@ class HomeScreen:
 
             if failed_attempts >= HomeScreen.MAX_ATTEMPTS:
                 print("\nToo many failed login attempts. The program is locked.")
+                # Log as suspicious activity
+                LogLogic.add_log_to_database("Unknown", "Login Attempt", "Exceeded maximum login attempts", suspicious="Yes")
                 break
 
             print("\nMain Menu:")
@@ -33,14 +37,18 @@ class HomeScreen:
                 username = input("\nUsername: ")
                 password = general_shared_methods.input_password("Password: ")
                 password_hash = UserLogic.hash_password(password)
-                
-                # This now returns the whole user object or None
+
                 user = UserLogic.authenticate_user(username, password_hash)
-                
+
                 if user:
+                    LogLogic.add_log_to_database(user.username, "Login", "User logged in successfully", suspicious="No")
+
                     print(f"\nLogin successful! Logged in as {user.role}.\n")
-                    failed_attempts = 0  # reset attempts
-                    
+                    failed_attempts = 0  # Reset attempts
+
+                    if user.role in ["super_admin", "system_admin"]:
+                        log_display_methods.display_unread_suspicious_logs(user)
+
                     if user.role == "service_engineer":
                         ServiceEngineerScreen.home_display(user)
                     elif user.role == "system_admin":
@@ -53,6 +61,7 @@ class HomeScreen:
                     failed_attempts += 1
                     remaining = HomeScreen.MAX_ATTEMPTS - failed_attempts
                     print(f"\nInvalid username or password. Attempts left: {remaining}")
+                    LogLogic.add_log_to_database(username, "Login Attempt", "Failed login attempt", suspicious="No")
                     time.sleep(1.5)
 
             elif userInput == "2":

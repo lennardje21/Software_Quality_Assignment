@@ -1,9 +1,5 @@
 # Presentation/super_admin_screen.py
 
-from Logic.user_logic import UserLogic
-from Logic.traveller_logic import TravellerLogic
-from Logic.backup_logic import BackupLogic
-from Logic.log_logic import LogLogic
 from Presentation.admin_display_methods import admin_display_methods
 from Presentation.traveller_display_methods import traveller_display_methods
 from Presentation.backup_display_methods import backup_display_methods

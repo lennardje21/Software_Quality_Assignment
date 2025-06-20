@@ -33,5 +33,5 @@ class LogLogic:
         get = GetData()
         logs = get.get_unread_suspicious_logs()
         if logs:
-            get.mark_logs_as_seen([log["id"] for log in logs])
+            get.mark_logs_as_seen([log[0] for log in logs])
         return logs

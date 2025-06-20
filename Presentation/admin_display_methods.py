@@ -1,9 +1,10 @@
 import time
 from Helpers.input_prompters import InputPrompters
 from Helpers.input_validators import InputValidators
-from Logic.user_logic import UserLogic
 from Presentation.general_shared_methods import general_shared_methods
 from Presentation.user_display_methods import user_display_methods
+from Logic.log_logic import LogLogic
+from Logic.user_logic import UserLogic
 
 class admin_display_methods:
     
@@ -62,11 +63,23 @@ class admin_display_methods:
         
         admin = admin_display_methods.prompt_for_new_admin_details(user)
         if admin is None:
+            LogLogic.add_log_to_database(
+                user.username,
+                "Add Admin Attempt",
+                "System administrator creation cancelled by user",
+                suspicious="No"
+            )
             print("Administrator creation cancelled.")
             time.sleep(1.5)
             return False
-        
+
         if UserLogic.add_system_admin(user, admin):
+            LogLogic.add_log_to_database(
+                user.username,
+                "Add Admin",
+                f"System administrator '{admin.username}' was added successfully",
+                suspicious="No"
+            )
             general_shared_methods.clear_console()
             print(f"System Administrator {admin.username} has been added successfully.")
             time.sleep(2)
@@ -77,10 +90,16 @@ class admin_display_methods:
             general_shared_methods.clear_console()
             return True
         else:
+            LogLogic.add_log_to_database(
+                user.username,
+                "Add Admin Failed",
+                f"Failed to add system administrator '{admin.username}'",
+                suspicious="Yes"  # Could be due to permissions or other errors
+            )
             print("Failed to add system administrator. Please check your permissions.")
             time.sleep(2)
             return False
-    
+
     @staticmethod
     def prompt_for_new_admin_details(user):
         general_shared_methods.clear_console()
@@ -154,11 +173,8 @@ class admin_display_methods:
                 return
             if admins is False:
                 continue
-        
+
             print("----------------------------------------------------------------------------")
-            #NOTE INPUT FIELD
-            admin_id = input("Enter system administrator ID to update (or type 'exit' to cancel): ").strip()
-            general_shared_methods.clear_console()
             
             admin_id = InputPrompters.prompt_until_valid(
                 "Enter system administrator ID to update (or type 'exit' to cancel): ",
@@ -166,25 +182,50 @@ class admin_display_methods:
                 "Invalid ID. Use letters, numbers, dashes or underscores."
             )
             if admin_id is None:
+                LogLogic.add_log_to_database(
+                    user.username,
+                    "Update Admin Cancelled",
+                    "Admin update process was cancelled by user",
+                    suspicious="No"
+                )
                 print("Exiting update...")
                 time.sleep(1)
                 general_shared_methods.clear_console()
                 return
-            
+
             general_shared_methods.clear_console()
-            
+
             admin = next((adm for adm in admins if adm.id == admin_id), None)
             if admin is None:
+                LogLogic.add_log_to_database(
+                    user.username,
+                    "Update Admin Failed",
+                    f"Tried to update non-existent admin ID: {admin_id}",
+                    suspicious="Yes"
+                )
                 print(f"No system administrator found with ID {admin_id}. Please try again.")
                 time.sleep(2)
                 continue
-            
+
+            LogLogic.add_log_to_database(
+                user.username,
+                "Update Admin Accessed",
+                f"Accessed update process for admin '{admin.username}'",
+                suspicious="No"
+            )
+
             exit_update = admin_display_methods.update_admin_fully(admin, user)
             if exit_update:
+                LogLogic.add_log_to_database(
+                    user.username,
+                    "Update Admin",
+                    f"Completed update process for admin '{admin.username}'",
+                    suspicious="No"
+                )
                 print("Exiting update...")
                 time.sleep(1)
                 break
-    
+
     @staticmethod
     def update_admin_fully(admin, user):
         editable_fields = ["username", "first_name", "last_name"]
@@ -290,7 +331,7 @@ class admin_display_methods:
                 return
             if admins is False:
                 continue
-            
+
             print("----------------------------------------------------------------------------")
 
             admin_id = InputPrompters.prompt_until_valid(
@@ -300,23 +341,48 @@ class admin_display_methods:
             )
 
             general_shared_methods.clear_console()
-            
+
             if admin_id is None:
+                LogLogic.add_log_to_database(
+                    user.username,
+                    "Delete Admin Cancelled",
+                    "User cancelled the deletion process",
+                    suspicious="No"
+                )
                 print("Exiting deletion...")
                 time.sleep(1)
                 return
-            
+
             admin = next((adm for adm in admins if adm.id == admin_id), None)
-            
+
             if admin is None:
+                LogLogic.add_log_to_database(
+                    user.username,
+                    "Delete Admin Failed",
+                    f"Tried to delete non-existent admin ID: {admin_id}",
+                    suspicious="Yes"
+                )
                 print(f"No system administrator found with ID {admin_id}. Please try again.")
                 time.sleep(2)
                 continue
-            
+
+            LogLogic.add_log_to_database(
+                user.username,
+                "Delete Admin Accessed",
+                f"User attempting to delete admin '{admin.username}'",
+                suspicious="No"
+            )
+
             exit_delete = admin_display_methods.display_delete_admin_confirm(admin, user)
             if exit_delete:
+                LogLogic.add_log_to_database(
+                    user.username,
+                    "Delete Admin",
+                    f"Deleted system administrator '{admin.username}'",
+                    suspicious="No"
+                )
                 break
-    
+
     @staticmethod
     def display_delete_admin_confirm(admin, user):
         while True:
@@ -364,48 +430,92 @@ class admin_display_methods:
     def display_delete_my_account(user):
         general_shared_methods.clear_console()
         if user_display_methods.verify_identity(user, "delete your account") is None:
-                return False
+            LogLogic.add_log_to_database(
+                user.username,
+                "Account Deletion Cancelled",
+                "User failed to verify identity for account deletion",
+                suspicious="No"
+            )
+            return False
+
         while True:
             general_shared_methods.clear_console()
-            
             print("----------------------------------------------------------------------------")
             print("|" + "Delete My Account".center(75) + "|")
             print("----------------------------------------------------------------------------")
             confirm = input(f"Are you sure you want to delete your account {user.username}? (yes/no): ").strip().lower()
             general_shared_methods.clear_console()
-            
+
             if confirm == 'yes':
                 if UserLogic.delete_system_admin(user, user.id, delete_own_account=True):
+                    LogLogic.add_log_to_database(
+                        user.username,
+                        "Account Deleted",
+                        "User successfully deleted their own account",
+                        suspicious="No"
+                    )
                     print("Your account has been deleted successfully.")
                     time.sleep(2)
                     return True
                 else:
+                    LogLogic.add_log_to_database(
+                        user.username,
+                        "Account Deletion Failed",
+                        "System failed to delete user account",
+                        suspicious="Yes"
+                    )
                     print("Failed to delete your account. Please try again later.")
                     time.sleep(2)
                     return False
+
             elif confirm == 'no':
+                LogLogic.add_log_to_database(
+                    user.username,
+                    "Account Deletion Cancelled",
+                    "User chose not to delete their account",
+                    suspicious="No"
+                )
                 print("Account deletion cancelled.")
                 time.sleep(1.5)
                 return False
+
             else:
                 print("Invalid input. Please enter 'yes' or 'no'.")
                 time.sleep(1.5)
                 continue
-    
+
     @staticmethod
     def display_update_own_profile(user):
         general_shared_methods.clear_console()
+        
         if user_display_methods.verify_identity(user, "update your profile") is None:
-                return False
+            LogLogic.add_log_to_database(
+                user.username,
+                "Profile Update Cancelled",
+                "User failed to verify identity for profile update",
+                suspicious="No"
+            )
+            return False
         
         while True:
             general_shared_methods.clear_console()
             updated = admin_display_methods.update_admin_fully(user, user, update_own_account=True)
+            
             if updated is True:
+                LogLogic.add_log_to_database(
+                    user.username,
+                    "Profile Update Cancelled",
+                    "User exited profile update process",
+                    suspicious="No"
+                )
                 return False
             else:
+                LogLogic.add_log_to_database(
+                    user.username,
+                    "Profile Updated",
+                    "User successfully updated their own profile",
+                    suspicious="No"
+                )
                 print("Your profile has been updated successfully.")
                 time.sleep(1)
                 return True
-            
- 

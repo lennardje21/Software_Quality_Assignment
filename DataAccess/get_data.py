@@ -232,40 +232,40 @@ class GetData:
 
     def get_user_by_partial(self, search_key: str) -> list[User]:
         with sqlite3.connect(self.db_path) as connection:
-            query = '''
-                SELECT *
-                FROM users
-                WHERE
-                    LOWER(UserID) LIKE LOWER(?) OR
-                    LOWER(UserName) LIKE LOWER(?) OR
-                    LOWER(FirstName) LIKE LOWER(?) OR
-                    LOWER(LastName) LIKE LOWER(?) OR
-                    LOWER(Role) LIKE LOWER(?) OR
-                    RegistrationDate LIKE ?
-            '''
+            query = '''SELECT * FROM users'''
             cursor = connection.cursor()
-            search_pattern = f"%{search_key.lower()}%"
-            date_pattern = f"%{search_key}%"
-            
-            params = [search_pattern] * 5 + [date_pattern]
-            
-            cursor.execute(query, params)
+            cursor.execute(query)
             rows = cursor.fetchall()
-            
+
             users = []
             for row in rows:
                 decrypt = self.cryptography.decrypt
-                users.append(User(
-                    id=row[0],  # UserID (not encrypted)
-                    username=decrypt(row[1]),  # Username
-                    password_hash=row[2],  # Password hash stays as is
-                    first_name=decrypt(row[3]),  # FirstName
-                    last_name=decrypt(row[4]),  # LastName
-                    role=decrypt(row[5]),  # Role
-                    registration_date=decrypt(row[6]),  # RegistrationDate
-                    must_change_password=row[7]  # MustChangePassword (not encrypted)
-                ))
-            return users
+                decrypted_user = User(
+                    id=row[0],
+                    username=decrypt(row[1]),
+                    password_hash=row[2],
+                    first_name=decrypt(row[3]),
+                    last_name=decrypt(row[4]),
+                    role=decrypt(row[5]),
+                    registration_date=decrypt(row[6]),
+                    must_change_password=row[7]
+                )
+                users.append(decrypted_user)
+
+            # Now do filtering in Python
+            search_key_lower = search_key.lower()
+            filtered = [
+                u for u in users if
+                search_key_lower in u.id.lower() or
+                search_key_lower in u.username.lower() or
+                search_key_lower in u.first_name.lower() or
+                search_key_lower in u.last_name.lower() or
+                search_key_lower in u.role.lower() or
+                search_key in u.registration_date
+            ]
+
+            return filtered
+
  
     def get_all_logs(self) -> list[tuple]:
         with sqlite3.connect(self.db_path) as connection:

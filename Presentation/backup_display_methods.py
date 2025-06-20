@@ -1,6 +1,7 @@
 # Presentation/backup_display_methods.py
 
 from Logic.backup_logic import BackupLogic
+from Logic.log_logic import LogLogic
 from Presentation.general_shared_methods import general_shared_methods
 import time
 
@@ -14,15 +15,37 @@ class backup_display_methods:
         print("|" + "Create Backup".center(75) + "|")
         print("----------------------------------------------------------------------------")
 
+        print("Creating backup...")
+        time.sleep(1)
+
         backup_name = BackupLogic.make_backup(user)
+
+        general_shared_methods.clear_console()
+        print("----------------------------------------------------------------------------")
+        print("|" + "Backup Result".center(75) + "|")
+        print("----------------------------------------------------------------------------")
+
         if backup_name:
-            print(f"\nBackup successfully created: {backup_name}")
+            print(f"Backup successfully created: {backup_name}")
+            LogLogic.add_log_to_database(
+                user.username,
+                "Backup Created",
+                f"Backup '{backup_name}' created successfully.",
+                suspicious="No"
+            )
             print("----------------------------------------------------------------------------")
             input("Press any key to continue...")
-            general_shared_methods.clear_console()
         else:
-            print("\nFailed to create backup.")
+            print("Failed to create backup. Please check your permissions or system status.")
+            LogLogic.add_log_to_database(
+                user.username,
+                "Backup Failed",
+                "Attempted to create a backup but failed.",
+                suspicious="Yes"
+            )
             time.sleep(2)
+
+        general_shared_methods.clear_console()
 
     @staticmethod
     def display_restore_backup(user):
@@ -35,25 +58,61 @@ class backup_display_methods:
             backups = BackupLogic.get_backup_list()
             if not backups:
                 print("No backups available.")
+                LogLogic.add_log_to_database(
+                    user.username,
+                    "Backup Restore Attempt",
+                    "No backups found during restore attempt.",
+                    suspicious="No"
+                )
                 input("\nPress any key to continue...")
+                general_shared_methods.clear_console()
                 return
 
-            print("\nAvailable backups:")
+            print("\nAvailable Backups:")
             for i, b in enumerate(backups, 1):
                 print(f"{i}. {b}")
+
             try:
-                choice = int(input("\nChoose a backup number: "))
-                if 1 <= choice <= len(backups):
+                choice = int(input("\nChoose a backup number (or 0 to cancel): "))
+                if choice == 0:
+                    print("Restore cancelled.")
+                    LogLogic.add_log_to_database(
+                        user.username,
+                        "Backup Restore Cancelled",
+                        "Restore operation was cancelled by super admin.",
+                        suspicious="No"
+                    )
+                elif 1 <= choice <= len(backups):
                     selected_backup = backups[choice - 1]
+                    print("Restoring from backup...")
+                    time.sleep(1)
                     result = BackupLogic.restore_backup(user, selected_backup)
                     if result:
                         print(f"\nRestore successful from backup: {selected_backup}")
+                        LogLogic.add_log_to_database(
+                            user.username,
+                            "Backup Restored",
+                            f"Restored system from backup '{selected_backup}'.",
+                            suspicious="No"
+                        )
                     else:
-                        print("\nRestore failed.")
+                        print("\nRestore failed. Please check logs or permissions.")
+                        LogLogic.add_log_to_database(
+                            user.username,
+                            "Backup Restore Failed",
+                            f"Attempted restore from backup '{selected_backup}' failed.",
+                            suspicious="Yes"
+                        )
                 else:
                     print("Invalid number.")
             except ValueError:
-                print("Invalid input.")
+                print("Invalid input. Please enter a number.")
+                LogLogic.add_log_to_database(
+                    user.username,
+                    "Backup Restore Failed",
+                    "Invalid input during backup selection.",
+                    suspicious="No"
+                )
 
         elif user.role == "system_admin":
             from DataAccess.get_data import GetData
@@ -62,7 +121,14 @@ class backup_display_methods:
 
             if not codes:
                 print("No active restore codes found.")
+                LogLogic.add_log_to_database(
+                    user.username,
+                    "Restore Code Access",
+                    "No restore codes available during attempt.",
+                    suspicious="No"
+                )
                 input("\nPress any key to continue...")
+                general_shared_methods.clear_console()
                 return
 
             print("\nAvailable Restore Codes:")
@@ -72,25 +138,56 @@ class backup_display_methods:
             try:
                 choice = int(input("\nSelect a restore code to use (0 to cancel): "))
                 if choice == 0:
-                    return
-                if 1 <= choice <= len(codes):
+                    print("Restore cancelled.")
+                    LogLogic.add_log_to_database(
+                        user.username,
+                        "Restore Code Cancelled",
+                        "Restore operation via restore code was cancelled.",
+                        suspicious="No"
+                    )
+                elif 1 <= choice <= len(codes):
                     selected_code = codes[choice - 1][0]
+                    print("Restoring using selected code...")
+                    time.sleep(1)
                     result = BackupLogic.restore_backup(user, restore_code=selected_code)
                     if result:
                         print("\nRestore successful.")
+                        LogLogic.add_log_to_database(
+                            user.username,
+                            "Backup Restored via Code",
+                            f"Restored backup using restore code: {selected_code}",
+                            suspicious="No"
+                        )
                     else:
-                        print("\nRestore failed.")
+                        print("\nRestore failed. Please verify the restore code.")
+                        LogLogic.add_log_to_database(
+                            user.username,
+                            "Restore Failed via Code",
+                            f"Failed attempt to restore using restore code: {selected_code}",
+                            suspicious="Yes"
+                        )
                 else:
                     print("Invalid selection.")
             except ValueError:
-                print("Invalid input.")
+                print("Invalid input. Please enter a number.")
+                LogLogic.add_log_to_database(
+                    user.username,
+                    "Restore Code Input Error",
+                    "Invalid input during restore code selection.",
+                    suspicious="No"
+                )
         else:
             print("\nYou are not authorized to restore backups.")
+            LogLogic.add_log_to_database(
+                user.username,
+                "Unauthorized Restore Attempt",
+                "User without permission attempted a restore operation.",
+                suspicious="Yes"
+            )
 
-    print("----------------------------------------------------------------------------")
-    input("Press any key to continue...")
-    general_shared_methods.clear_console()
-
+        print("----------------------------------------------------------------------------")
+        input("Press any key to continue...")
+        general_shared_methods.clear_console()
 
     @staticmethod
     def display_generate_restore_code(user):
@@ -105,7 +202,14 @@ class backup_display_methods:
 
         if not admins:
             print("No system administrators found.")
+            LogLogic.add_log_to_database(
+                user.username,
+                "Generate Restore Code",
+                "Attempted to generate restore code but no system administrators found.",
+                suspicious="Yes"
+            )
             input("\nPress any key to continue...")
+            general_shared_methods.clear_console()
             return
 
         print("\nSystem Administrators:")
@@ -113,21 +217,52 @@ class backup_display_methods:
             print(f"{idx}. {first} {last} ({username})")
 
         try:
-            choice = int(input("\nSelect a System Admin to assign code to: "))
+            choice = int(input("\nSelect a System Admin to assign code to (0 to cancel): "))
+            if choice == 0:
+                print("Operation cancelled.")
+                LogLogic.add_log_to_database(
+                    user.username,
+                    "Generate Restore Code",
+                    "Restore code generation cancelled by user.",
+                    suspicious="No"
+                )
+                time.sleep(1.5)
+                general_shared_methods.clear_console()
+                return
             if not (1 <= choice <= len(admins)):
                 print("Invalid choice.")
+                LogLogic.add_log_to_database(
+                    user.username,
+                    "Generate Restore Code",
+                    f"Invalid admin selection: {choice}",
+                    suspicious="No"
+                )
                 time.sleep(1.5)
                 return
             target_admin_id = admins[choice - 1][0]
+            target_admin_username = admins[choice - 1][3]
         except ValueError:
-            print("Invalid input.")
+            print("Invalid input. Please enter a number.")
+            LogLogic.add_log_to_database(
+                user.username,
+                "Generate Restore Code",
+                "Non-integer input while selecting system admin.",
+                suspicious="No"
+            )
             time.sleep(1.5)
             return
 
         backups = BackupLogic.get_backup_list()
         if not backups:
             print("No backups found.")
+            LogLogic.add_log_to_database(
+                user.username,
+                "Generate Restore Code",
+                "Attempted to generate restore code but no backups available.",
+                suspicious="Yes"
+            )
             input("\nPress any key to return...")
+            general_shared_methods.clear_console()
             return
 
         print("\nAvailable Backups:")
@@ -135,27 +270,61 @@ class backup_display_methods:
             print(f"{idx}. {b}")
 
         try:
-            choice = int(input("\nSelect backup to assign for restore: "))
+            choice = int(input("\nSelect a backup to assign (0 to cancel): "))
+            if choice == 0:
+                print("Operation cancelled.")
+                LogLogic.add_log_to_database(
+                    user.username,
+                    "Generate Restore Code",
+                    "Restore code generation cancelled at backup selection.",
+                    suspicious="No"
+                )
+                time.sleep(1.5)
+                general_shared_methods.clear_console()
+                return
             if not (1 <= choice <= len(backups)):
                 print("Invalid backup choice.")
+                LogLogic.add_log_to_database(
+                    user.username,
+                    "Generate Restore Code",
+                    f"Invalid backup selection: {choice}",
+                    suspicious="No"
+                )
                 time.sleep(1.5)
                 return
             selected_backup = backups[choice - 1]
         except ValueError:
-            print("Invalid input.")
+            print("Invalid input. Please enter a number.")
+            LogLogic.add_log_to_database(
+                user.username,
+                "Generate Restore Code",
+                "Non-integer input while selecting backup.",
+                suspicious="No"
+            )
             time.sleep(1.5)
             return
 
         result = BackupLogic.generate_restore_code(user, target_admin_id, selected_backup)
         if result:
-            print(f"\nRestore code created for admin and backup: {selected_backup}")
+            print(f"\nRestore code successfully generated for backup: {selected_backup}")
+            LogLogic.add_log_to_database(
+                user.username,
+                "Restore Code Generated",
+                f"Restore code created for admin '{target_admin_username}' for backup '{selected_backup}'.",
+                suspicious="No"
+            )
         else:
             print("\nFailed to generate restore code.")
+            LogLogic.add_log_to_database(
+                user.username,
+                "Restore Code Generation Failed",
+                f"Attempt to generate restore code for backup '{selected_backup}' failed.",
+                suspicious="Yes"
+            )
+
         print("----------------------------------------------------------------------------")
         input("Press any key to continue...")
         general_shared_methods.clear_console()
-
-
 
     @staticmethod
     def display_revoke_restore_code(user):
@@ -164,12 +333,84 @@ class backup_display_methods:
         print("|" + "Revoke Restore Code".center(75) + "|")
         print("----------------------------------------------------------------------------")
 
-        target_admin_id = input("Enter target system admin ID: ").strip()
+        from DataAccess.get_data import GetData
+        get = GetData()
+        admins = get.get_all_system_admins()
+
+        if not admins:
+            print("No system administrators found.")
+            LogLogic.add_log_to_database(
+                user.username,
+                "Revoke Restore Code",
+                "Attempted to revoke restore codes but no system admins were found.",
+                suspicious="Yes"
+            )
+            input("\nPress any key to continue...")
+            general_shared_methods.clear_console()
+            return
+
+        print("\nSystem Administrators:")
+        for idx, (admin_id, first, last, username) in enumerate(admins, 1):
+            print(f"{idx}. {first} {last} ({username})")
+
+        try:
+            choice = int(input("\nSelect an admin to revoke restore codes from (0 to cancel): "))
+            if choice == 0:
+                print("Operation cancelled.")
+                LogLogic.add_log_to_database(
+                    user.username,
+                    "Revoke Restore Code",
+                    "User cancelled the revoke restore code operation.",
+                    suspicious="No"
+                )
+                time.sleep(1.5)
+                general_shared_methods.clear_console()
+                return
+
+            if not (1 <= choice <= len(admins)):
+                print("Invalid selection.")
+                LogLogic.add_log_to_database(
+                    user.username,
+                    "Revoke Restore Code",
+                    f"Invalid selection index: {choice}.",
+                    suspicious="No"
+                )
+                time.sleep(1.5)
+                return
+
+            target_admin_id = admins[choice - 1][0]
+            target_admin_username = admins[choice - 1][3]
+
+        except ValueError:
+            print("Invalid input. Please enter a number.")
+            LogLogic.add_log_to_database(
+                user.username,
+                "Revoke Restore Code",
+                "Non-integer input while selecting system admin.",
+                suspicious="No"
+            )
+            time.sleep(1.5)
+            return
+
         result = BackupLogic.revoke_restore_code(user, target_admin_id)
         if result:
-            print(f"\nRestore codes revoked for admin ID: {target_admin_id}")
+            print(f"\nRestore codes successfully revoked for admin '{target_admin_username}'.")
+            LogLogic.add_log_to_database(
+                user.username,
+                "Restore Code Revoked",
+                f"Restore codes revoked for admin '{target_admin_username}'.",
+                suspicious="No"
+            )
         else:
-            print("\nFailed to revoke restore codes.")
+            print("\nFailed to revoke restore codes. Please check your permissions or try again.")
+            LogLogic.add_log_to_database(
+                user.username,
+                "Restore Code Revoke Failed",
+                f"Failed attempt to revoke restore codes for admin '{target_admin_username}'.",
+                suspicious="Yes"
+            )
+
         print("----------------------------------------------------------------------------")
         input("Press any key to continue...")
         general_shared_methods.clear_console()
+

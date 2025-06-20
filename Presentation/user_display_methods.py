@@ -1,3 +1,6 @@
+from Helpers.input_prompters import InputPrompters
+from Helpers.input_validators import InputValidators
+from Logic.log_logic import LogLogic
 from Presentation.general_shared_methods import general_shared_methods
 from Logic.user_logic import UserLogic
 
@@ -5,36 +8,58 @@ import time
 
 
 class user_display_methods:
+
     @staticmethod
     def display_check_users(user):
         general_shared_methods.clear_console()
         users = UserLogic.check_users(user)
         general_shared_methods.clear_console()
-        if users == False:
+
+        if users is False:
             print("Unauthorized action.")
+            LogLogic.add_log_to_database(
+                username=user.username,
+                action="Check Users",
+                description="Attempted to access the user list without proper permissions.",
+                suspicious="Yes"
+            )
             time.sleep(2)
             return
-        if not users or len(users) == 0:
+
+        if not users:
             print("No users found.")
+            LogLogic.add_log_to_database(
+                username=user.username,
+                action="Check Users",
+                description="Viewed user list. No users found.",
+                suspicious="No"
+            )
             time.sleep(2)
             return
-        
+
+        LogLogic.add_log_to_database(
+            username=user.username,
+            action="Check Users",
+            description=f"Viewed list of {len(users)} user(s).",
+            suspicious="No"
+        )
+
         print(f"Found {len(users)} users in the system:\n")
         time.sleep(1.5)
         general_shared_methods.clear_console()
+
         print("----------------------------------------------------------------------------")
         print("|" + "User List".center(75) + "|")
         print("----------------------------------------------------------------------------")
+
         for count, user_item in enumerate(users, 1):
             print(f"User #{count}: {user_item.username}")
             print("----------------------------------------------------------------------------")
             user_display_methods.display_user(user_item, "")
-            print("----------------------------------------------------------------------------")    
-
+            print("----------------------------------------------------------------------------")
 
         input("\nPress Enter to continue...")
         general_shared_methods.clear_console()
-        return None
 
     @staticmethod
     def display_user(user, search_key=None, current_user=None):
@@ -66,68 +91,105 @@ class user_display_methods:
             print(f"Role:              {user.role:<25}{role_editable_tag:>12}")
             print(f"Registration Date: {user.registration_date}")
             
-    
     @staticmethod
     def display_update_password(user, temp_password=False):     
         general_shared_methods.clear_console()
-        if temp_password is False:
+
+        if not temp_password:
             if user_display_methods.verify_identity(user, "update your password") is None:
                 return
+
         while True:
             general_shared_methods.clear_console()
             print("----------------------------------------------------------------------------")
             print("|" + "Update Password".center(75) + "|")
             print("----------------------------------------------------------------------------")
-            #NOTE INPUT FIELD
-            new_password = general_shared_methods.input_password("Enter your new password: ").strip()
-            
-            passed, error_msg = UserLogic.check_password_requirements(new_password)
 
-            if not passed:
-                general_shared_methods.clear_console()
-                print(error_msg)
-                time.sleep(2)
-                continue
+            def password_validator(password):
+                passed, _ = UserLogic.check_password_requirements(password)
+                return passed
+
+            new_password = InputPrompters.prompt_until_valid(
+                prompt_msg="Enter your new password: ",
+                validate_func=password_validator,
+                error_msg="Password does not meet requirements.",
+            )
+            if new_password is None:
+                LogLogic.add_log_to_database(
+                    username=user.username,
+                    action="Update Password",
+                    description="Password update cancelled by user.",
+                    suspicious="No"
+                )
+                return
+
             print("----------------------------------------------------------------------------")
             new_password_confirm = general_shared_methods.input_password("Confirm your new password: ").strip()
             general_shared_methods.clear_console()
+
             if new_password != new_password_confirm:
                 print("Passwords do not match. Please try again.")
                 time.sleep(2)
                 continue
 
-            else:
-                general_shared_methods.clear_console()
-                print("Updating your password...")
-                hashed_password = UserLogic.hash_password(new_password)
-                UserLogic.update_own_password(user, hashed_password )
-                time.sleep(1.5)
-                general_shared_methods.clear_console()
-                print("Your password has been successfully updated.")
-                time.sleep(1.5)
-                break
+            general_shared_methods.clear_console()
+            print("Updating your password...")
+            hashed_password = UserLogic.hash_password(new_password)
+            UserLogic.update_own_password(user, hashed_password)
+            time.sleep(1.5)
+            general_shared_methods.clear_console()
+            print("Your password has been successfully updated.")
+            time.sleep(1.5)
+
+            # ✅ Log the password update
+            LogLogic.add_log_to_database(
+                username=user.username,
+                action="Update Password",
+                description="User updated their password." if not temp_password else "User updated temporary password.",
+                suspicious="No"
+            )
+            break
 
     @staticmethod
     def verify_identity(user, prompt):
-        print("To verify your identity, please enter your current password")
+        print("To verify your identity, please enter your current password.")
         print("----------------------------------------------------------------------------")
-        #NOTE INPUT FIELD MOET NOG STERRETJES ZIJN
-        input_password = general_shared_methods.input_password("Current Password: ").strip()
-        general_shared_methods.clear_console()
-        print("Verifying your identity...")
-        time.sleep(1.5)
-        general_shared_methods.clear_console()
 
-        verified = UserLogic.verify_password(user.password_hash, input_password)
-        if not verified:
-            print("Incorrect password. Returning to menu...")
+        attempts = 3
+        while attempts > 0:
+            input_password = general_shared_methods.input_password("Current Password: ").strip()
+            general_shared_methods.clear_console()
+
+            print("Verifying your identity...")
             time.sleep(1.5)
-            return
-        
-        print(f"Identity verified. You can now {prompt}")
-        time.sleep(1)
-        general_shared_methods.clear_console()
-        return True
+            general_shared_methods.clear_console()
+
+            if UserLogic.verify_password(user.password_hash, input_password):
+                LogLogic.add_log_to_database(
+                    username=user.username,
+                    action="Identity Verification",
+                    description=f"User verified identity to {prompt}.",
+                    suspicious="No"
+                )
+                print(f"Identity verified. You can now {prompt}.")
+                time.sleep(1)
+                general_shared_methods.clear_console()
+                return True
+
+            attempts -= 1
+            if attempts > 0:
+                print(f"Incorrect password. {attempts} attempt(s) remaining.")
+                time.sleep(1.5)
+            else:
+                LogLogic.add_log_to_database(
+                    username=user.username,
+                    action="Identity Verification Failed",
+                    description=f"User failed to verify identity for: {prompt}.",
+                    suspicious="Yes"
+                )
+                print("Too many failed attempts. Returning to menu...")
+                time.sleep(1.5)
+                return None
 
     @staticmethod
     def display_reset_password(user, prompt):
@@ -149,108 +211,114 @@ class user_display_methods:
     def _find_target_user_for_reset(user, prompt):
         from Presentation.engineer_display_methods import engineer_display_methods
         from Presentation.admin_display_methods import admin_display_methods
-        """Find and select a user whose password needs to be reset"""
+
+        display_map = {
+            "Service Engineer": ("engineer", engineer_display_methods.search_engineer_display),
+            "System Admin": ("admin", admin_display_methods.search_admin_display),
+        }
+
+        if prompt not in display_map:
+            print("Something went wrong. Returning to menu...")
+            LogLogic.add_log_to_database(
+                username=user.username,
+                action="Reset Password",
+                description=f"Invalid prompt key '{prompt}' for user lookup.",
+                suspicious="Yes"
+            )
+            time.sleep(1.5)
+            general_shared_methods.clear_console()
+            return None
+
+        user_type, search_func = display_map[prompt]
+
         while True:
             general_shared_methods.clear_console()
+            users = search_func(user, update_call=True)
 
-            if prompt == "Service Engineer":
-                # Get list of engineers
-                engineers = engineer_display_methods.search_engineer_display(user, update_call=True)
-                if engineers is True:  # User cancelled search
-                    return None
-                if engineers is False or engineers is None:  # No results found or error
-                    print("No engineers found or search error occurred.")
-                    time.sleep(2)
-                    general_shared_methods.clear_console()
-                    continue
-                
-                # Select engineer
-                print("----------------------------------------------------------------------------")
-                engineer_id = input("Enter service engineer ID to reset password (or type 'exit' to cancel): ").strip()
-                general_shared_methods.clear_console()
-                
-                if engineer_id.lower() == 'exit':
-                    print("Password reset cancelled.")
-                    time.sleep(1)
-                    return None
-                
-                # Find selected engineer
-                target_user = None
-                for eng in engineers:
-                    if eng.id == engineer_id:
-                        target_user = eng
-                        break
-                        
-                if target_user is None:
-                    print(f"No service engineer found with ID {engineer_id}. Please try again.")
-                    time.sleep(2)
-                    continue
-                
-                return target_user
-                
-            elif prompt == "System Admin":
-                # Get list of admins
-                admins = admin_display_methods.search_admin_display(user, update_call=True)
-                if admins is True:  # User cancelled search
-                    return None
-                if admins is False or admins is None:  # No results found or error
-                    print("No system admins found or search error occurred.")
-                    time.sleep(2)
-                    general_shared_methods.clear_console()
-                    continue
-                
-                # Select admin
-                print("----------------------------------------------------------------------------")
-                admin_id = input("Enter system admin ID to reset password (or type 'exit' to cancel): ").strip()
-                general_shared_methods.clear_console()
-                
-                if admin_id.lower() == 'exit':
-                    print("Password reset cancelled.")
-                    time.sleep(1)
-                    return None
-                
-                # Find selected admin
-                target_user = None
-                for adm in admins:
-                    if adm.id == admin_id:
-                        target_user = adm
-                        break
-                        
-                if target_user is None:
-                    print(f"No system admin found with ID {admin_id}. Please try again.")
-                    time.sleep(2)
-                    continue
-                
-                return target_user
-                
-            else:
-                print("Something went wrong. Returning to menu...")
-                time.sleep(1.5)
-                general_shared_methods.clear_console()
+            if users is True:
                 return None
+            if not users:
+                print(f"No {user_type}s found or search error occurred.")
+                LogLogic.add_log_to_database(
+                    username=user.username,
+                    action="Reset Password",
+                    description=f"No {user_type}s found during password reset search.",
+                    suspicious="No"
+                )
+                time.sleep(2)
+                continue
+
+            user_id = InputPrompters.prompt_until_valid(
+                prompt_msg=f"Enter {user_type} ID to reset password (or type 'exit' to cancel): ",
+                validate_func=InputValidators.validate_id,
+                error_msg="Invalid ID format. Please try again."
+            )
+
+            if user_id is None:
+                print("Password reset cancelled.")
+                LogLogic.add_log_to_database(
+                    username=user.username,
+                    action="Reset Password",
+                    description=f"Cancelled password reset for a {user_type}.",
+                    suspicious="No"
+                )
+                time.sleep(1)
+                return None
+
+            target_user = next((u for u in users if u.id == user_id), None)
+            if not target_user:
+                print(f"No {user_type} found with ID {user_id}. Please try again.")
+                LogLogic.add_log_to_database(
+                    username=user.username,
+                    action="Reset Password",
+                    description=f"Attempted password reset for non-existent {user_type} ID: {user_id}",
+                    suspicious="Yes"
+                )
+                time.sleep(2)
+                continue
+
+            LogLogic.add_log_to_database(
+                username=user.username,
+                action="Reset Password",
+                description=f"Selected {user_type} '{target_user.username}' for password reset.",
+                suspicious="No"
+            )
+            return target_user
 
     @staticmethod
     def _perform_password_reset(user, target_user, prompt):
-        
-        # Generate and set new password
         while True:
             user_display_methods._show_reset_header(target_user, prompt)
+
             temp_password = UserLogic.generate_temporary_password()
             hashed_temp_password = UserLogic.hash_password(temp_password)
+
             print(f"Generated temporary password: {temp_password}")
-            success = UserLogic.set_temporary_password(user, target_user, hashed_temp_password)
-            #NOTE INPUT FIELD
             print("----------------------------------------------------------------------------")
-            general_shared_methods.input_password("Press any key to continue")
+            input("Press Enter to continue...")
             general_shared_methods.clear_console()
+
+            success = UserLogic.set_temporary_password(user, target_user, hashed_temp_password)
 
             if success:
                 print(f"Password for {target_user.username} has been successfully reset.")
-                print(f"User will be required to change password on next login.")
+                print("User will be required to change password on next login.")
+                LogLogic.add_log_to_database(
+                    username=user.username,
+                    action="Reset Password",
+                    description=f"Password reset successfully for user '{target_user.username}'.",
+                    suspicious="No"
+                )
                 time.sleep(2)
                 return True
             else:
                 print("Failed to reset password. Please check your permissions.")
+                LogLogic.add_log_to_database(
+                    username=user.username,
+                    action="Reset Password",
+                    description=f"Failed password reset attempt for user '{target_user.username}'.",
+                    suspicious="Yes"
+                )
                 time.sleep(2)
                 return False
 
@@ -266,23 +334,40 @@ class user_display_methods:
     @staticmethod
     def display_necessary_password_update(user, reset_by_admin=False):
         general_shared_methods.clear_console()
-        prompt = ""
-        if reset_by_admin:
-            prompt = "Your password has been reset by a System Admin. You must update it now."
-        else:
-            prompt = "Your password has been reset by the Super Admin. You must update it now."
+        prompt = (
+            "Your password has been reset by a System Admin. You must update it now."
+            if reset_by_admin else
+            "Your password has been reset by the Super Admin. You must update it now."
+        )
+
         print(prompt)
         time.sleep(2)
         general_shared_methods.clear_console()
+
         user_display_methods.display_update_password(user, True)
+
         success = UserLogic.reset_password_upon_login_successful(user)
+
         if success:
+            LogLogic.add_log_to_database(
+                username=user.username,
+                action="Forced Password Update",
+                description="User successfully updated their password after a forced reset.",
+                suspicious="No"
+            )
             print("Your password has been updated successfully.")
             time.sleep(2)
             general_shared_methods.clear_console()
             return True
         else:
+            LogLogic.add_log_to_database(
+                username=user.username,
+                action="Forced Password Update Failed",
+                description="User failed to update password after a forced reset.",
+                suspicious="Yes"
+            )
             print("Failed to update your password. Please try again later.")
             time.sleep(2)
             general_shared_methods.clear_console()
             return False
+

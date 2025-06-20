@@ -2,7 +2,8 @@
 
 from Logic.user_logic import UserLogic
 from Logic.traveller_logic import TravellerLogic
-from Presentation import traveller_display_methods
+from Presentation.admin_display_methods import admin_display_methods
+from Presentation.traveller_display_methods import traveller_display_methods
 from Presentation.scooter_display_methods import scooter_display_methods
 from Presentation.general_shared_methods import general_shared_methods
 from Presentation.user_display_methods import user_display_methods
@@ -115,7 +116,7 @@ class SystemAdminScreen:
                 time.sleep(1.5)
 
             elif choice == "12":
-                exit = traveller_display_methods.display_modify_traveller(user)
+                exit = traveller_display_methods.display_update_traveller(user)
                 general_shared_methods.clear_console()
                 print("Returning to menu...")
                 time.sleep(1.5)
