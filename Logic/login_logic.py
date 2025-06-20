@@ -9,9 +9,7 @@ class LoginLogic:
 
     @staticmethod
     def authenticate_user(username: str, password: str) -> str | None:
-        """
-        Verifies credentials and returns the user's role if valid.
-        """
+
         connection = sqlite3.connect(DB_PATH)
         cursor = connection.cursor()
 
@@ -30,9 +28,7 @@ class LoginLogic:
 
     @staticmethod
     def get_user_object(username: str, password: str) -> User | None:
-        """
-        Returns a User object from the database if credentials are valid.
-        """
+
         connection = sqlite3.connect(DB_PATH)
         cursor = connection.cursor()
 
