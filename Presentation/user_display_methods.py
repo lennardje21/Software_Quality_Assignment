@@ -58,7 +58,7 @@ class user_display_methods:
             user_display_methods.display_user(user_item, "")
             print("----------------------------------------------------------------------------")
 
-        input("\nPress Enter to continue...")
+        general_shared_methods.input_password("\nPress any key to continue...")
         general_shared_methods.clear_console()
 
     @staticmethod

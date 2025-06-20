@@ -72,3 +72,5 @@ class HomeScreen:
             else:
                 print("\nInvalid option, please try again.")
                 time.sleep(0.5)
+
+    

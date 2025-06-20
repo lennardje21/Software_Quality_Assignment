@@ -164,6 +164,28 @@ class UserLogic:
         return user_password == hashlib.sha256(entered_password.encode()).hexdigest()
 
     @staticmethod
+    def check_username_requirements(username: str) -> tuple[bool, str]:
+        # 1) Length: 8–10 chars
+        if len(username) < 8:
+            return False, "Username must be at least 8 characters long."
+        if len(username) > 10:
+            return False, "Username must be no more than 10 characters long."
+
+        # 2) Must start with letter or underscore
+        if not re.match(r'^[A-Za-z_]', username):
+            return False, "Username must start with a letter or underscore (_)."
+
+        # 3) Only allowed characters: letters, digits, underscore, apostrophe, period
+        if not re.match(r"^[A-Za-z0-9_\.\\']+$", username):
+            return False, (
+                "Username can only contain letters, numbers, underscores (_), apostrophes ('), and periods (.)"
+            )
+
+        # 4) All good
+        return True, ""
+
+
+    @staticmethod
     def authenticate_user(username, password_hash):
         try:
             getData = GetData()

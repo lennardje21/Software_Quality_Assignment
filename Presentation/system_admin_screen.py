@@ -10,6 +10,7 @@ from Presentation.user_display_methods import user_display_methods
 from Presentation.engineer_display_methods import engineer_display_methods
 from Presentation.backup_display_methods import backup_display_methods
 from Presentation.log_display_methods import log_display_methods
+from Presentation.admin_display_methods import admin_display_methods
 
 import time
 

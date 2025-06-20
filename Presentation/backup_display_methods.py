@@ -323,7 +323,7 @@ class backup_display_methods:
             )
 
         print("----------------------------------------------------------------------------")
-        input("Press any key to continue...")
+        general_shared_methods.input_password("Press any key to continue...")
         general_shared_methods.clear_console()
 
     @staticmethod
@@ -411,6 +411,6 @@ class backup_display_methods:
             )
 
         print("----------------------------------------------------------------------------")
-        input("Press any key to continue...")
+        general_shared_methods.input_password("Press any key to continue...")
         general_shared_methods.clear_console()
 
