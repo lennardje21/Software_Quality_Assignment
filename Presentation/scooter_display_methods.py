@@ -63,7 +63,7 @@ class scooter_display_methods:
             time.sleep(1)
             general_shared_methods.clear_console()
             return True
-
+        
         general_shared_methods.clear_console()
         scooters = ScooterLogic.search_scooter(user, search_key)
 
@@ -83,10 +83,10 @@ class scooter_display_methods:
             time.sleep(2)
             general_shared_methods.clear_console()
             return False
-        
+
     @staticmethod
     def display_update_scooter(user):
-        # Search for scooters
+        #Scooter zoeken
         while True:
             scooters = scooter_display_methods.search_scooter_display(user, update_call=True)
             if scooters is True:
@@ -94,6 +94,7 @@ class scooter_display_methods:
             if scooters is False:
                 continue 
             
+            #Scooter id invoeren
             print("----------------------------------------------------------------------------")
             scooter_id = InputPrompters.prompt_until_valid(
                 "Enter scooter ID number to update (or type 'exit' to cancel): #",
@@ -106,14 +107,19 @@ class scooter_display_methods:
                 print("Exiting update...")
                 time.sleep(1)
                 return
-
+            if scooter_id == '':
+                print("Scooter ID cannot be empty. Please try again.")
+                time.sleep(1.5)
+                continue
+                
+            #Scooter uit Db pakken
             scooter = ScooterLogic.find_scooter_by_id(scooters, scooter_id)
             if scooter is None:
                 print(f"No scooter found with ID {scooter_id}. Please try again.")
                 time.sleep(2)
                 continue
-
-            # Route based on user role
+                
+            #User rol bekijken
             if user.role == "service_engineer":
                 while True:
                     exit_update = scooter_display_methods.partial_update_scooter_display(scooter, user)
@@ -226,11 +232,12 @@ class scooter_display_methods:
                 continue  # back to field selection
 
             general_shared_methods.clear_console()
+            #NOTE TYPE CHECKING AND ASSIGNING
             scooter_display_methods.update_scooter(scooter, field, new_value, user)
             print(f"Updated {prompt_label} for scooter {scooter.id}.")
             time.sleep(2)
             general_shared_methods.clear_console()
-            return False  # allow one update per session
+            return False
 
     @staticmethod
     def display_delete_scooter(user):
@@ -240,7 +247,7 @@ class scooter_display_methods:
                 return
             if scooters is False:
                 continue
-
+            
             print("----------------------------------------------------------------------------")
             scooter_id = InputPrompters.prompt_until_valid(
                 "Enter scooter ID number to delete (or type 'exit' to cancel): #",
@@ -263,13 +270,13 @@ class scooter_display_methods:
 
             while True:
                 exit_update = scooter_display_methods.display_delete_scooter_confirm(scooter, user)
-                if exit_update is True:
+                if exit_update == True:
                     general_shared_methods.clear_console()
                     print("Exiting Deletion...")
                     time.sleep(1)
                     break
             break  # Exit the outer loop after successful deletion
-
+                
     @staticmethod
     def display_delete_scooter_confirm(scooter, user):
         general_shared_methods.clear_console()
@@ -278,7 +285,7 @@ class scooter_display_methods:
         print("----------------------------------------------------------------------------")
         scooter_display_methods.display_scooter(scooter, scooter.id)
         print("----------------------------------------------------------------------------")
-
+        
         confirm = InputPrompters.prompt_until_valid(
             f"Are you sure you want to delete scooter {scooter.id}? (yes/no): ",
             InputValidators.validate_yes_no,
@@ -292,33 +299,43 @@ class scooter_display_methods:
             time.sleep(1)
             return True
 
-        if ScooterLogic.delete_scooter(user, scooter.id):
+            if ScooterLogic.delete_scooter(user, scooter.id):
+                general_shared_methods.clear_console()
+                print(f"Scooter {scooter.id} has been deleted successfully.")
+                time.sleep(2)
+                return True
+            else:
+                print("Failed to delete scooter. Please check your permissions.")
+                time.sleep(2)
+                return True
+        elif confirm == 'no':
             general_shared_methods.clear_console()
-            print(f"Scooter {scooter.id} has been deleted successfully.")
-            time.sleep(2)
+            print("Deletion cancelled.")
+            time.sleep(1)
             return True
         else:
-            print("Failed to delete scooter. Please check your permissions.")
-            time.sleep(2)
-            return True
-
+            general_shared_methods.clear_console()
+            print("Invalid input. Please enter 'yes' or 'no'.")
+            time.sleep(1.5)
+            return
+    
     @staticmethod
     def display_add_scooter(user):
         general_shared_methods.clear_console()
         print("----------------------------------------------------------------------------")
         print("|" + "Add New Scooter".center(75) + "|")
         print("----------------------------------------------------------------------------")
-
+        
         scooter = scooter_display_methods.prompt_for_new_scooter_details(user)
 
         if scooter is None:
             print("Scooter creation cancelled.")
             time.sleep(1.5)
             return False
-
+        
         success = ScooterLogic.add_scooter(user, scooter)
 
-        general_shared_methods.clear_console()
+            general_shared_methods.clear_console()
         if success:
             print(f"Scooter {scooter.id} has been added successfully.")
             time.sleep(2)
@@ -335,14 +352,14 @@ class scooter_display_methods:
             print("Failed to add scooter. Please check your permissions.")
             time.sleep(2)
             return False
-
+    
     @staticmethod
     def prompt_for_new_scooter_details(user):
         general_shared_methods.clear_console()
         print("----------------------------------------------------------------------------")
         print("|" + "Enter New Scooter Details".center(75) + "|")
         print("----------------------------------------------------------------------------")
-
+        
         p = InputPrompters.prompt_until_valid  # Alias for brevity
 
         brand = p("Enter Brand: ", InputValidators.validate_alphanumeric, "Invalid brand name.")
@@ -368,23 +385,23 @@ class scooter_display_methods:
 
         soc_max = int(p("Enter Target SOC Max (%): ", InputValidators.validate_percentage, "Invalid max SOC (0–100%)."))
         if soc_max is None: return None
-
+        
         latitude = float(p("Enter Latitude: ", InputValidators.validate_latitude, "Invalid latitude (-90 to 90)."))
         if latitude is None: return None
-
+        
         longitude = float(p("Enter Longitude: ", InputValidators.validate_longitude, "Invalid longitude (-180 to 180)."))
         if longitude is None: return None
-
+        
         out_of_service = p("Is the scooter out of service? (yes/no): ", InputValidators.validate_yes_no, "Enter 'yes' or 'no'.")
         if out_of_service is None: return None
         out_of_service_bool = out_of_service.lower() == "yes"
-
+        
         mileage = int(p("Enter Mileage (km): ", InputValidators.validate_positive_number, "Invalid mileage. Must be 0 or higher."))
         if mileage is None: return None
-
+        
         last_maintenance = p("Enter Last Maintenance Date (YYYY-MM-DD): ", InputValidators.validate_date, "Invalid date format.")
         if last_maintenance is None: return None
-
+        
         return ScooterLogic.create_scooter_object(
             user,
             brand,
@@ -401,7 +418,9 @@ class scooter_display_methods:
             mileage,
             last_maintenance
         )
-
+        
+        return scooter
+    
     @staticmethod
     def partial_update_scooter_display(scooter, user):
         editable_fields = [
@@ -453,6 +472,7 @@ class scooter_display_methods:
                 return False
 
             general_shared_methods.clear_console()
+            #NOTE TYPE CHECKING AND ASSIGNING
             scooter_display_methods.update_scooter(scooter, field, new_value, user)
             print(f"Updated {field.replace('_', ' ').title()} for scooter {scooter.id}.")
             time.sleep(2)
@@ -481,6 +501,7 @@ class scooter_display_methods:
             if field_input == 'exit':
                 print("Exiting update...")
                 time.sleep(1)
+                general_shared_methods.clear_console()
                 return None
 
             if not InputValidators.validate_safe_string(field_input):
@@ -515,9 +536,9 @@ class scooter_display_methods:
             "last_maintenance_date": InputValidators.validate_date,
         }
 
-        general_shared_methods.clear_console()
-        print(scooter_display_methods.display_singular_scooter_field(scooter, field))
-        print("----------------------------------------------------------------------------")
+            general_shared_methods.clear_console()
+            print(scooter_display_methods.display_singular_scooter_field(scooter, field))
+            print("----------------------------------------------------------------------------")
 
         validator = validators.get(field)
         if validator:
@@ -529,15 +550,17 @@ class scooter_display_methods:
         else:
             # Fallback if no validator is mapped — treat as free text (still allow exit)
             while True:
-                new_value = input(f"Enter new value for {field} (or type 'exit' to cancel): ").strip()
+            new_value = input(f"Enter new value for {field} (or type 'exit' to cancel): ").strip()
                 if new_value.lower() == 'exit':
-                    general_shared_methods.clear_console()
-                    print("Exiting update...")
-                    time.sleep(1)
-                    return None
-                if new_value == '':
-                    print("Value cannot be empty. Please enter a value or type 'exit' to cancel.")
-                    time.sleep(1.5)
-                    continue
+            general_shared_methods.clear_console()
+            if new_value.lower() == 'exit':
+                print("Exiting update...")
+                time.sleep(1)
                 general_shared_methods.clear_console()
-                return new_value
+                return None
+            if new_value == '':
+                print("Value cannot be empty. Please enter a value or type 'exit' to cancel.")
+                time.sleep(1.5)
+                continue
+                general_shared_methods.clear_console()
+            return new_value

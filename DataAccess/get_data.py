@@ -13,65 +13,107 @@ class GetData:
     
     def get_all_users(self) -> list[User]:
         with sqlite3.connect(self.db_path) as connection:
-            query = ''' SELECT *
-                        FROM users'''
+            query = '''
+                SELECT *
+                FROM users
+            '''
             cursor = connection.cursor()
             cursor.execute(query)
             rows = cursor.fetchall()
-            return [
-                User(*row) for row in rows
-            ]
+            return [User(*row) for row in rows]
     
     def get_all_travellers(self) -> list[Traveller]:
         with sqlite3.connect(self.db_path) as connection:
-            query = ''' SELECT *
-                        FROM travellers'''
+            query = '''
+                SELECT *
+                FROM travellers
+            '''
             cursor = connection.cursor()
             cursor.execute(query)
             rows = cursor.fetchall()
-            return [
-                Traveller(*row) for row in rows
-            ]
+            return [Traveller(*row) for row in rows]
     
     def get_all_scooters(self) -> list[Scooter]:
         with sqlite3.connect(self.db_path) as connection:
-            query = ''' SELECT *
-                        FROM scooter'''
+            query = '''
+                SELECT *
+                FROM scooter
+            '''
             cursor = connection.cursor()
             cursor.execute(query)
             rows = cursor.fetchall()
-            return [
-                Scooter(*row) for row in rows
-            ]
+            return [Scooter(*row) for row in rows]
 
-    def get_user_by_id(self, user_id: int) -> User:
+    def get_user_by_id(self, user_id: str) -> User:
         with sqlite3.connect(self.db_path) as connection:
-            query = ''' SELECT *
-                        FROM users
-                        WHERE UserID = ?'''
+            query = '''
+                SELECT *
+                FROM users
+                WHERE UserID = ?
+            '''
             cursor = connection.cursor()
             cursor.execute(query, (user_id,))
             row = cursor.fetchone()
             return User(*row) if row else None
 
-    def get_traveller_by_id(self, traveller_id: int) -> Traveller:
+    def get_traveller_by_id(self, traveller_id: str) -> Traveller:
         with sqlite3.connect(self.db_path) as connection:
-            query = ''' SELECT *
-                        FROM travellers
-                        WHERE TravellerID = ?'''
+            query = '''
+                SELECT *
+                FROM travellers
+                WHERE TravellerID = ?
+            '''
             cursor = connection.cursor()    
             cursor.execute(query, (traveller_id,))
             row = cursor.fetchone()
             return Traveller(*row) if row else None
 
-    def get_scooter_by_id(self, scooter_id: int) -> Scooter:
+    def get_scooter_by_id(self, scooter_id: str) -> Scooter:
         with sqlite3.connect(self.db_path) as connection:
-            query = ''' SELECT *
-                        FROM scooter
-                        WHERE ScooterID = ?'''
+            query = '''
+                SELECT *
+                FROM scooter
+                WHERE ScooterID = ?
+            '''
             cursor = connection.cursor()
             cursor.execute(query, (scooter_id,))
             row = cursor.fetchone()
+            return Scooter(*row) if row else None
+
+    def get_user_by_partial(self, search_key: str) -> list[User]:
+        with sqlite3.connect(self.db_path) as connection:
+            query = '''
+                SELECT *
+                FROM users
+                WHERE
+                    LOWER(UserID) LIKE LOWER(?) OR
+                    LOWER(UserName) LIKE LOWER(?) OR
+                    LOWER(FirstName) LIKE LOWER(?) OR
+                    LOWER(LastName) LIKE LOWER(?) OR
+                    LOWER(Role) LIKE LOWER(?) OR
+                    RegistrationDate LIKE ?
+            '''
+            cursor = connection.cursor()
+            search_pattern = f"%{search_key.lower()}%"
+            date_pattern = f"%{search_key}%"
+            
+            params = [search_pattern] * 5 + [date_pattern]
+            
+            cursor.execute(query, params)
+            rows = cursor.fetchall()
+            return [User(*row) for row in rows]
+
+    def get_user_by_username(self, username: str) -> User:
+        with sqlite3.connect(self.db_path) as connection:
+            query = '''
+                SELECT *
+                FROM users
+                WHERE UserName = ?
+            '''
+            cursor = connection.cursor()
+            cursor.execute(query, (username,))
+            row = cursor.fetchone()
+            return User(*row) if row else None
             return Scooter(*row) if row else None
 
     def get_scooter_by_partial(self, search_key: str) -> list[Scooter]:

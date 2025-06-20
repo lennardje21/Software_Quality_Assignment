@@ -12,7 +12,6 @@ def create_tables():
     if not os.path.exists(database_dir):
         os.makedirs(database_dir)
 
-    print(f"Creating database at: {database_path}")  # Debug print
     connection = sqlite3.connect(database_path)
     
     create_travellers_table = '''
@@ -27,7 +26,7 @@ def create_tables():
         ZipCode TEXT,
         City TEXT,
         Email TEXT UNIQUE,
-        MobilePhone TEXT,
+        MobilePhone TEXT UNIQUE,
         DrivingLicenseNumber TEXT UNIQUE,
         RegistrationDate TEXT
     );
@@ -41,7 +40,8 @@ def create_tables():
         FirstName TEXT,
         LastName TEXT,
         Role TEXT NOT NULL,
-        RegistrationDate TEXT
+        RegistrationDate TEXT,
+        MustChangePassword INTEGER NOT NULL DEFAULT 0
     );
     '''
 

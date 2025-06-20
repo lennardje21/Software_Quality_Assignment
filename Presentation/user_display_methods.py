@@ -1,5 +1,6 @@
 from Presentation.general_shared_methods import general_shared_methods
 from Logic.user_logic import UserLogic
+
 import time
 
 
@@ -38,7 +39,6 @@ class user_display_methods:
     @staticmethod
     def display_user(user, search_key=None, current_user=None):
         if search_key is not None:
-            # The search display logic (keep this as is)
             print(f"User ID:           {general_shared_methods.highlight(user.id, search_key)}")
             print(f"Username:          {general_shared_methods.highlight(user.username, search_key)}")
             print(f"Name:              {general_shared_methods.highlight(user.first_name, search_key)} {general_shared_methods.highlight(user.last_name, search_key)}")
@@ -52,8 +52,9 @@ class user_display_methods:
                 from DataModels.user import ROLES_HIERARCHY
                 viewer_role_level = ROLES_HIERARCHY.get(current_user.role, 0)
                 user_role_level = ROLES_HIERARCHY.get(user.role, 0)
-                is_editable = viewer_role_level > user_role_level
-                role_editable = current_user.role == "super_admin" and is_editable
+                # Check if viewing own profile (same object) OR has higher role
+                is_editable = (current_user.id == user.id) or (viewer_role_level > user_role_level)
+                role_editable = current_user.role == "super_admin" and viewer_role_level > user_role_level
             
             editable_tag = "[Editable]" if is_editable else ""
             role_editable_tag = "[Editable]" if role_editable else ""
@@ -67,15 +68,221 @@ class user_display_methods:
             
     
     @staticmethod
-    def display_update_password(user):        
+    def display_update_password(user, temp_password=False):     
         general_shared_methods.clear_console()
+        if temp_password is False:
+            if user_display_methods.verify_identity(user, "update your password") is None:
+                return
+        while True:
+            general_shared_methods.clear_console()
+            print("----------------------------------------------------------------------------")
+            print("|" + "Update Password".center(75) + "|")
+            print("----------------------------------------------------------------------------")
+            #NOTE INPUT FIELD
+            new_password = general_shared_methods.input_password("Enter your new password: ").strip()
+            
+            passed, error_msg = UserLogic.check_password_requirements(new_password)
+
+            if not passed:
+                general_shared_methods.clear_console()
+                print(error_msg)
+                time.sleep(2)
+                continue
+            print("----------------------------------------------------------------------------")
+            new_password_confirm = general_shared_methods.input_password("Confirm your new password: ").strip()
+            general_shared_methods.clear_console()
+            if new_password != new_password_confirm:
+                print("Passwords do not match. Please try again.")
+                time.sleep(2)
+                continue
+
+            else:
+                general_shared_methods.clear_console()
+                print("Updating your password...")
+                hashed_password = UserLogic.hash_password(new_password)
+                UserLogic.update_own_password(user, hashed_password )
+                time.sleep(1.5)
+                general_shared_methods.clear_console()
+                print("Your password has been successfully updated.")
+                time.sleep(1.5)
+                break
+
+    @staticmethod
+    def verify_identity(user, prompt):
+        print("To verify your identity, please enter your current password")
         print("----------------------------------------------------------------------------")
-        print("|" + "Update Password".center(75) + "|")
-        print("----------------------------------------------------------------------------")
+        #NOTE INPUT FIELD MOET NOG STERRETJES ZIJN
+        input_password = general_shared_methods.input_password("Current Password: ").strip()
+        general_shared_methods.clear_console()
+        print("Verifying your identity...")
+        time.sleep(1.5)
+        general_shared_methods.clear_console()
+
+        verified = UserLogic.verify_password(user.password_hash, input_password)
+        if not verified:
+            print("Incorrect password. Returning to menu...")
+            time.sleep(1.5)
+            return
         
-        #NOTE INPUT FIELD
-        new_password = input("Enter your new password: ").strip()
-        general_shared_methods.clear_console()
-        print("Not implemented yet.")
+        print(f"Identity verified. You can now {prompt}")
         time.sleep(1)
-        return
+        general_shared_methods.clear_console()
+        return True
+
+    @staticmethod
+    def display_reset_password(user, prompt):
+        """Main method to handle the password reset flow"""
+        general_shared_methods.clear_console()
+        if user_display_methods.verify_identity(user, f"reset {prompt} password") is None:
+            return False
+        general_shared_methods.clear_console()
+        
+        # Find target user
+        target_user = user_display_methods._find_target_user_for_reset(user, prompt)
+        if target_user is None:
+            return False
+        
+        # Reset password for found user
+        return user_display_methods._perform_password_reset(user, target_user, prompt)
+
+    @staticmethod
+    def _find_target_user_for_reset(user, prompt):
+        from Presentation.engineer_display_methods import engineer_display_methods
+        from Presentation.admin_display_methods import admin_display_methods
+        """Find and select a user whose password needs to be reset"""
+        while True:
+            general_shared_methods.clear_console()
+
+            if prompt == "Service Engineer":
+                # Get list of engineers
+                engineers = engineer_display_methods.search_engineer_display(user, update_call=True)
+                if engineers is True:  # User cancelled search
+                    return None
+                if engineers is False or engineers is None:  # No results found or error
+                    print("No engineers found or search error occurred.")
+                    time.sleep(2)
+                    general_shared_methods.clear_console()
+                    continue
+                
+                # Select engineer
+                print("----------------------------------------------------------------------------")
+                engineer_id = input("Enter service engineer ID to reset password (or type 'exit' to cancel): ").strip()
+                general_shared_methods.clear_console()
+                
+                if engineer_id.lower() == 'exit':
+                    print("Password reset cancelled.")
+                    time.sleep(1)
+                    return None
+                
+                # Find selected engineer
+                target_user = None
+                for eng in engineers:
+                    if eng.id == engineer_id:
+                        target_user = eng
+                        break
+                        
+                if target_user is None:
+                    print(f"No service engineer found with ID {engineer_id}. Please try again.")
+                    time.sleep(2)
+                    continue
+                
+                return target_user
+                
+            elif prompt == "System Admin":
+                # Get list of admins
+                admins = admin_display_methods.search_admin_display(user, update_call=True)
+                if admins is True:  # User cancelled search
+                    return None
+                if admins is False or admins is None:  # No results found or error
+                    print("No system admins found or search error occurred.")
+                    time.sleep(2)
+                    general_shared_methods.clear_console()
+                    continue
+                
+                # Select admin
+                print("----------------------------------------------------------------------------")
+                admin_id = input("Enter system admin ID to reset password (or type 'exit' to cancel): ").strip()
+                general_shared_methods.clear_console()
+                
+                if admin_id.lower() == 'exit':
+                    print("Password reset cancelled.")
+                    time.sleep(1)
+                    return None
+                
+                # Find selected admin
+                target_user = None
+                for adm in admins:
+                    if adm.id == admin_id:
+                        target_user = adm
+                        break
+                        
+                if target_user is None:
+                    print(f"No system admin found with ID {admin_id}. Please try again.")
+                    time.sleep(2)
+                    continue
+                
+                return target_user
+                
+            else:
+                print("Something went wrong. Returning to menu...")
+                time.sleep(1.5)
+                general_shared_methods.clear_console()
+                return None
+
+    @staticmethod
+    def _perform_password_reset(user, target_user, prompt):
+        
+        # Generate and set new password
+        while True:
+            user_display_methods._show_reset_header(target_user, prompt)
+            temp_password = UserLogic.generate_temporary_password()
+            hashed_temp_password = UserLogic.hash_password(temp_password)
+            print(f"Generated temporary password: {temp_password}")
+            success = UserLogic.set_temporary_password(user, target_user, hashed_temp_password)
+            #NOTE INPUT FIELD
+            print("----------------------------------------------------------------------------")
+            general_shared_methods.input_password("Press any key to continue")
+            general_shared_methods.clear_console()
+
+            if success:
+                print(f"Password for {target_user.username} has been successfully reset.")
+                print(f"User will be required to change password on next login.")
+                time.sleep(2)
+                return True
+            else:
+                print("Failed to reset password. Please check your permissions.")
+                time.sleep(2)
+                return False
+
+    @staticmethod
+    def _show_reset_header(target_user, prompt):
+        """Helper method to display the reset password header"""
+        print("----------------------------------------------------------------------------")
+        print("|" + f"Reset Password for {prompt}".center(75) + "|")
+        print("----------------------------------------------------------------------------")
+        user_display_methods.display_user(target_user)
+        print("----------------------------------------------------------------------------")
+
+    @staticmethod
+    def display_necessary_password_update(user, reset_by_admin=False):
+        general_shared_methods.clear_console()
+        prompt = ""
+        if reset_by_admin:
+            prompt = "Your password has been reset by a System Admin. You must update it now."
+        else:
+            prompt = "Your password has been reset by the Super Admin. You must update it now."
+        print(prompt)
+        time.sleep(2)
+        general_shared_methods.clear_console()
+        user_display_methods.display_update_password(user, True)
+        success = UserLogic.reset_password_upon_login_successful(user)
+        if success:
+            print("Your password has been updated successfully.")
+            time.sleep(2)
+            general_shared_methods.clear_console()
+            return True
+        else:
+            print("Failed to update your password. Please try again later.")
+            time.sleep(2)
+            general_shared_methods.clear_console()
+            return False

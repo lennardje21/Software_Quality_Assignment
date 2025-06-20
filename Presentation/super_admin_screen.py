@@ -78,8 +78,10 @@ class SuperAdminScreen:
                 time.sleep(1.5)
 
             elif choice == "5":
-                admin_id = int(input("Enter System Admin ID to reset password: "))
-                UserLogic.reset_system_admin_password(user, admin_id)
+                exit = user_display_methods.display_reset_password(user, "System Admin")
+                general_shared_methods.clear_console()
+                print("Returning to menu...")
+                time.sleep(1.5)
 
             elif choice == "6":
                 exit = engineer_display_methods.display_add_engineer(user)
@@ -100,8 +102,10 @@ class SuperAdminScreen:
                 time.sleep(1.5)
 
             elif choice == "9":
-                engineer_id = int(input("Enter Service Engineer ID to reset password: "))
-                UserLogic.reset_service_engineer_password(user, engineer_id)
+                exit = user_display_methods.display_reset_password(user, "Service Engineer")
+                general_shared_methods.clear_console()
+                print("Returning to menu...")
+                time.sleep(1.5)
 
             elif choice == "10":
                 exit = backup_display_methods.display_generate_restore_code(user)
@@ -189,8 +193,8 @@ class SuperAdminScreen:
                 time.sleep(1.5)
 
             elif choice == "23":
-                print("\nLogging out...")
                 general_shared_methods.clear_console()
+                print("Logging out...")
                 time.sleep(1)
                 break
 

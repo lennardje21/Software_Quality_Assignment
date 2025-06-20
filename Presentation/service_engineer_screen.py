@@ -9,6 +9,10 @@ class ServiceEngineerScreen:
 
     @staticmethod
     def home_display(user):
+        if user.must_change_password == 1:
+            if user_display_methods.display_necessary_password_update(user) is False:
+                return
+
         while True:
             general_shared_methods.clear_console()
             print("----------------------------------------------------------------------------")
@@ -43,7 +47,7 @@ class ServiceEngineerScreen:
                     elif exit is None:
                         #NOTE INPUT FIELD
                         print("----------------------------------------------------------------------------")
-                        input("Press any key to continue...")
+                        general_shared_methods.input_password("Press any key to continue...")
                         break
                 
                 general_shared_methods.clear_console()
@@ -51,13 +55,13 @@ class ServiceEngineerScreen:
                 time.sleep(1.5)
 
             elif choice == "3":
-                #NOTE NOG MAKEN
                 user_display_methods.display_update_password(user)
             elif choice == "4":
-                print("\nLogging out...")
                 general_shared_methods.clear_console()
+                print("\nLogging out...")
                 time.sleep(1)
                 break
 
             else:
                 print("Invalid option, please try again.")
+
