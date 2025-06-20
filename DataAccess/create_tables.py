@@ -12,7 +12,6 @@ def create_tables():
     if not os.path.exists(database_dir):
         os.makedirs(database_dir)
 
-    print(f"Creating database at: {database_path}")  # Debug print
     connection = sqlite3.connect(database_path)
     
     create_travellers_table = '''
@@ -27,7 +26,7 @@ def create_tables():
         ZipCode TEXT,
         City TEXT,
         Email TEXT UNIQUE,
-        MobilePhone TEXT,
+        MobilePhone TEXT UNIQUE,
         DrivingLicenseNumber TEXT UNIQUE,
         RegistrationDate TEXT
     );
@@ -41,7 +40,8 @@ def create_tables():
         FirstName TEXT,
         LastName TEXT,
         Role TEXT NOT NULL,
-        RegistrationDate TEXT
+        RegistrationDate TEXT,
+        MustChangePassword INTEGER NOT NULL DEFAULT 0
     );
     '''
 
@@ -64,6 +64,30 @@ def create_tables():
         InServiceDate TEXT
     );
     '''
+
+    create_restore_code_table = '''
+    CREATE TABLE IF NOT EXISTS restore_codes (
+        code TEXT PRIMARY KEY,
+        target_admin_id TEXT NOT NULL,
+        backup_file TEXT NOT NULL,
+        used INTEGER DEFAULT 0
+    );
+    '''
+
+    create_log_table = '''
+    CREATE TABLE IF NOT EXISTS logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL,
+        action TEXT NOT NULL,
+        description TEXT NOT NULL,
+        suspicious TEXT CHECK(suspicious IN ('Yes', 'No')) DEFAULT 'No',
+        seen TEXT CHECK(seen IN ('Yes', 'No')) DEFAULT 'No',
+        timestamp TEXT NOT NULL
+    );
+    '''
+    
+
+    
     
     #create_logs_table = None #Nog doen
 
@@ -71,6 +95,9 @@ def create_tables():
     cursor.execute(create_travellers_table)
     cursor.execute(create_users_table)
     cursor.execute(create_scooter_table)
+    cursor.execute(create_restore_code_table)
+    cursor.execute(create_log_table)
+
     
     connection.commit()
     connection.close()

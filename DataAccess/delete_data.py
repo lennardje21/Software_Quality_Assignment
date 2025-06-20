@@ -45,3 +45,15 @@ class DeleteData:
         except Exception as e:
             print(f"Error deleting scooter: {e}")
             return False    
+    
+    def clear_database(self) -> bool:
+        try:
+            with sqlite3.connect(self.db_path) as connection:
+                cursor = connection.cursor()
+                cursor.execute("DELETE FROM users")
+                cursor.execute("DELETE FROM travellers")
+                cursor.execute("DELETE FROM scooter")
+            return True
+        except Exception as e:
+            print(f"Error clearing database: {e}")
+            return False

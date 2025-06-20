@@ -1,10 +1,12 @@
 # Presentation/home_screen.py
 
-import sqlite3
+import sqlite3, time
 from DataModels.user import User
 from Presentation.service_engineer_screen import ServiceEngineerScreen
 from Presentation.system_admin_screen import SystemAdminScreen
 from Presentation.super_admin_screen import SuperAdminScreen
+from Logic.user_logic import UserLogic
+from Presentation.general_shared_methods import general_shared_methods
 
 db_path = 'Database/urbanmobility.db'
 
@@ -13,10 +15,12 @@ class HomeScreen:
 
     @staticmethod
     def display():
+        user = ""
         failed_attempts = 0
-        print("\nWelcome to the Urban Mobility Backend System!\n")
-        
         while True:
+            general_shared_methods.clear_console()
+            print("\nWelcome to the Urban Mobility Backend System!\n")
+
             if failed_attempts >= HomeScreen.MAX_ATTEMPTS:
                 print("\nToo many failed login attempts. The program is locked.")
                 break
@@ -28,8 +32,8 @@ class HomeScreen:
 
             if userInput == "1":
                 username = input("\nUsername: ")
-                password = input("Password: ")
-
+                password = general_shared_methods.input_password("Password: ")
+                password = UserLogic.hash_password(password)
                 role = HomeScreen.simulate_authentication(username, password)
 
                 if role:
@@ -41,7 +45,7 @@ class HomeScreen:
 
                     if user:
                         if user.role == "service_engineer":
-                            ServiceEngineerScreen.display(user)
+                            ServiceEngineerScreen.home_display(user)
 
                         elif user.role == "system_admin":
                             SystemAdminScreen.display(user)
@@ -58,13 +62,16 @@ class HomeScreen:
                     failed_attempts += 1
                     remaining = HomeScreen.MAX_ATTEMPTS - failed_attempts
                     print(f"\nInvalid username or password. Attempts left: {remaining}")
+                    time.sleep(1.5)
 
             elif userInput == "2":
                 print("\nGoodbye!")
+                time.sleep(0.5)
                 break
 
             else:
                 print("\nInvalid option, please try again.")
+                time.sleep(0.5)
 
     # temp function
     @staticmethod
@@ -97,7 +104,7 @@ class HomeScreen:
         cursor = connection.cursor()
 
         query = '''
-        SELECT UserID, UserName, PasswordHash, FirstName, LastName, Role, RegistrationDate
+        SELECT UserID, UserName, PasswordHash, FirstName, LastName, Role, RegistrationDate, MustChangePassword
         FROM users
         WHERE UserName = ? AND PasswordHash = ?
         '''
@@ -115,7 +122,8 @@ class HomeScreen:
                 first_name=row[3],
                 last_name=row[4],
                 role=row[5],
-                registration_date=row[6]
+                registration_date=row[6],
+                must_change_password=row[7]
             )
         else:
             return None
