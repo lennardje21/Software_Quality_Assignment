@@ -63,16 +63,7 @@ class ScooterLogic:
     @staticmethod
     def search_scooter(user: User, search_key: str = None) -> list:
         if user.is_authorized("service_engineer"):
-            print("[ScooterLogic] Searching for scooters...")
-        else:
-            print("Unauthorized action.")
-
-    @staticmethod
-    def serial_exists(user: User, serial: str) -> bool:
-        if user.is_authorized("service_engineer"):
-            # Replace with actual check, e.g., database query or in-memory lookup
             getData = GetData()
-            all_scooters = getData.get_all_scooters()
-            return any(s.serial_number.lower() == serial.lower() for s in all_scooters)
+            return getData.get_scooter_by_partial(search_key)
         else:
-            return False
+            return None
