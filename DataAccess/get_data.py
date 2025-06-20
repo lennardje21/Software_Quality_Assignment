@@ -3,7 +3,6 @@ from DataModels.user import User
 from DataModels.traveller import Traveller
 from DataModels.scooter import Scooter
 from Logic.cryptography import Cryptography
-#from DataModels.log import Log # Nog niet gebruikt
 
 # Ensure the parent directory is in the Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -15,7 +14,6 @@ class GetData:
     
     def get_all_users(self) -> list[User]:
         with sqlite3.connect(self.db_path) as connection:
-            # so we can access rows by column name
             connection.row_factory = sqlite3.Row
             cursor = connection.cursor()
             cursor.execute("SELECT * FROM users")
@@ -25,13 +23,13 @@ class GetData:
         for row in rows:
             users.append(User(
                 id=row[0],
-                username=self.cryptography.decrypt(row[1]),  # Decrypt username
-                password_hash=row[2],  # Password hash stays as is
-                first_name=self.cryptography.decrypt(row[3]),  # Decrypt first name
-                last_name=self.cryptography.decrypt(row[4]),  # Decrypt last name
-                role=self.cryptography.decrypt(row[5]),  # Decrypt role
-                registration_date=self.cryptography.decrypt(row[6]),  # Decrypt reg date
-                must_change_password=row[7]  # Integer flag, no encryption
+                username=self.cryptography.decrypt(row[1]),
+                password_hash=row[2],
+                first_name=self.cryptography.decrypt(row[3]),
+                last_name=self.cryptography.decrypt(row[4]),
+                role=self.cryptography.decrypt(row[5]),
+                registration_date=self.cryptography.decrypt(row[6]),
+                must_change_password=row[7]
             ))
         return users
     
@@ -104,14 +102,14 @@ class GetData:
             if row:
                 decrypt = self.cryptography.decrypt
                 return User(
-                    id=row[0],  # UserID (not encrypted)
-                    username=decrypt(row[1]),  # Username
-                    password_hash=row[2],  # Password hash stays as is
-                    first_name=decrypt(row[3]),  # FirstName
-                    last_name=decrypt(row[4]),  # LastName
-                    role=decrypt(row[5]),  # Role
-                    registration_date=decrypt(row[6]),  # RegistrationDate
-                    must_change_password=row[7]  # MustChangePassword (not encrypted)
+                    id=row[0],
+                    username=decrypt(row[1]),
+                    password_hash=row[2],
+                    first_name=decrypt(row[3]),
+                    last_name=decrypt(row[4]),
+                    role=decrypt(row[5]),
+                    registration_date=decrypt(row[6]),
+                    must_change_password=row[7]
                 )
         return None
 
@@ -129,19 +127,19 @@ class GetData:
             if row:
                 decrypt = self.cryptography.decrypt
                 return Traveller(
-                    row[0],  # TravellerID (not encrypted)
-                    decrypt(row[1]),  # FirstName
-                    decrypt(row[2]),  # LastName
-                    decrypt(row[3]),  # Birthday
-                    decrypt(row[4]),  # Gender
-                    decrypt(row[5]),  # StreetName
-                    decrypt(row[6]),  # HouseNumber
-                    decrypt(row[7]),  # ZipCode
-                    decrypt(row[8]),  # City
-                    decrypt(row[9]),  # Email
-                    decrypt(row[10]),  # MobilePhone
-                    decrypt(row[11]),  # DrivingLicenseNumber
-                    decrypt(row[12])   # RegistrationDate
+                    row[0],
+                    decrypt(row[1]),
+                    decrypt(row[2]),
+                    decrypt(row[3]),
+                    decrypt(row[4]),
+                    decrypt(row[5]),
+                    decrypt(row[6]),
+                    decrypt(row[7]),
+                    decrypt(row[8]),
+                    decrypt(row[9]),
+                    decrypt(row[10]),
+                    decrypt(row[11]),
+                    decrypt(row[12])
                 )
         return None
 
@@ -159,21 +157,21 @@ class GetData:
             if row:
                 decrypt = self.cryptography.decrypt
                 return Scooter(
-                    row[0],  # ScooterID (not encrypted)
-                    decrypt(row[1]),  # Brand
-                    decrypt(row[2]),  # Model
-                    decrypt(row[3]),  # SerialNumber
-                    int(decrypt(row[4])),  # TopSpeed
-                    int(decrypt(row[5])),  # BatteryCapacity
-                    int(decrypt(row[6])),  # StateOfCharge
-                    int(decrypt(row[7])),  # TargetSOCMin
-                    int(decrypt(row[8])),  # TargetSOCMax
-                    float(decrypt(row[9])),  # Latitude
-                    float(decrypt(row[10])),  # Longitude
-                    int(decrypt(row[11])),  # OutOfServiceStatus
-                    int(decrypt(row[12])),  # Mileage
-                    decrypt(row[13]),  # LastMaintenanceDate
-                    decrypt(row[14])   # InServiceDate
+                    row[0],
+                    decrypt(row[1]),
+                    decrypt(row[2]),
+                    decrypt(row[3]),
+                    int(decrypt(row[4])),
+                    int(decrypt(row[5])),
+                    int(decrypt(row[6])),
+                    int(decrypt(row[7])), 
+                    int(decrypt(row[8])),  
+                    float(decrypt(row[9])),  
+                    float(decrypt(row[10])),  
+                    int(decrypt(row[11])), 
+                    int(decrypt(row[12])),  
+                    decrypt(row[13]), 
+                    decrypt(row[14])  
                 )
         return None
 
@@ -212,21 +210,21 @@ class GetData:
             for row in rows:
                 decrypt = self.cryptography.decrypt
                 scooters.append(Scooter(
-                    row[0],  # ScooterID (not encrypted)
-                    decrypt(row[1]),  # Brand
-                    decrypt(row[2]),  # Model
-                    decrypt(row[3]),  # SerialNumber
-                    int(decrypt(row[4])),  # TopSpeed
-                    int(decrypt(row[5])),  # BatteryCapacity
-                    int(decrypt(row[6])),  # StateOfCharge
-                    int(decrypt(row[7])),  # TargetSOCMin
-                    int(decrypt(row[8])),  # TargetSOCMax
-                    float(decrypt(row[9])),  # Latitude
-                    float(decrypt(row[10])),  # Longitude
-                    int(decrypt(row[11])),  # OutOfServiceStatus
-                    int(decrypt(row[12])),  # Mileage
-                    decrypt(row[13]),  # LastMaintenanceDate
-                    decrypt(row[14])   # InServiceDate
+                    row[0], 
+                    decrypt(row[1]), 
+                    decrypt(row[2]), 
+                    decrypt(row[3]),
+                    int(decrypt(row[4])),
+                    int(decrypt(row[5])), 
+                    int(decrypt(row[6])),
+                    int(decrypt(row[7])),
+                    int(decrypt(row[8])),
+                    float(decrypt(row[9])),
+                    float(decrypt(row[10])),
+                    int(decrypt(row[11])),
+                    int(decrypt(row[12])),
+                    decrypt(row[13]),
+                    decrypt(row[14])
                 ))
             return scooters
 
@@ -252,7 +250,6 @@ class GetData:
                 )
                 users.append(decrypted_user)
 
-            # Now do filtering in Python
             search_key_lower = search_key.lower()
             filtered = [
                 u for u in users if
@@ -266,7 +263,6 @@ class GetData:
 
             return filtered
 
- 
     def get_all_logs(self) -> list[tuple]:
         with sqlite3.connect(self.db_path) as connection:
             query = '''
@@ -278,18 +274,17 @@ class GetData:
             cursor.execute(query)
             rows = cursor.fetchall()
             
-            # Decrypt the encrypted fields in each log entry
             decrypted_rows = []
             for row in rows:
                 decrypt = self.cryptography.decrypt
                 decrypted_row = (
-                    row[0],  # id (not encrypted)
-                    decrypt(row[1]),  # username
-                    decrypt(row[2]),  # action
-                    decrypt(row[3]),  # description
-                    decrypt(row[4]),  # suspicious
-                    decrypt(row[5]),  # seen
-                    decrypt(row[6])   # timestamp
+                    row[0],
+                    decrypt(row[1]),
+                    decrypt(row[2]),
+                    decrypt(row[3]),
+                    decrypt(row[4]),
+                    decrypt(row[5]), 
+                    decrypt(row[6])
                 )
                 decrypted_rows.append(decrypted_row)
             
@@ -304,38 +299,32 @@ class GetData:
                 ORDER BY id DESC
             '''
             cursor = connection.cursor()
-            # Use encrypted values for the WHERE clause
             cursor.execute(query, (self.cryptography.encrypt('Yes'), self.cryptography.encrypt('No')))
             rows = cursor.fetchall()
             
-            # Decrypt the encrypted fields in each log entry
             decrypted_logs = []
             for row in rows:
                 decrypt = self.cryptography.decrypt
                 decrypted_log = {
-                    "id": row[0],  # id (not encrypted)
-                    "username": decrypt(row[1]),  # username
-                    "action": decrypt(row[2]),  # action
-                    "description": decrypt(row[3]),  # description
-                    "suspicious": decrypt(row[4]),  # suspicious
-                    "seen": decrypt(row[5]),  # seen
-                    "timestamp": decrypt(row[6])   # timestamp
+                    "id": row[0],
+                    "username": decrypt(row[1]), 
+                    "action": decrypt(row[2]),
+                    "description": decrypt(row[3]), 
+                    "suspicious": decrypt(row[4]),
+                    "seen": decrypt(row[5]), 
+                    "timestamp": decrypt(row[6]) 
                 }
                 decrypted_logs.append(decrypted_log)
             
             return decrypted_logs
 
-    
-
     def get_restore_code_entry(self, code: str, user_id: str) -> dict | None:
         with sqlite3.connect(self.db_path) as connection:
-            # Get all restore codes and filter in memory
             query = "SELECT code, target_admin_id, backup_file, used FROM restore_codes"
             cursor = connection.cursor()
             cursor.execute(query)
             rows = cursor.fetchall()
             
-            # Find matching code/user_id after decryption
             for row in rows:
                 decrypt = self.cryptography.decrypt
                 try:
@@ -345,7 +334,7 @@ class GetData:
                     if decrypted_code == code and decrypted_admin_id == user_id:
                         return {
                             "backup_file": decrypt(row[2]),
-                            "used": bool(row[3])  # 'used' is not encrypted
+                            "used": bool(row[3])
                         }
                 except Exception as e:
                     print(f"Error decrypting restore code: {e}")
@@ -354,20 +343,17 @@ class GetData:
 
     def get_restore_codes_for_admin(self, admin_id: str) -> list[tuple]:
         with sqlite3.connect(self.db_path) as conn:
-            # Get all restore codes and filter in memory
             query = "SELECT code, target_admin_id, backup_file FROM restore_codes ORDER BY rowid DESC"
             cursor = conn.cursor()
             cursor.execute(query)
             rows = cursor.fetchall()
             
-            # Filter and decrypt matching codes
             result = []
             for row in rows:
                 decrypt = self.cryptography.decrypt
                 try:
                     decrypted_admin_id = decrypt(row[1])
                     if decrypted_admin_id == admin_id:
-                        # Return (decrypted_code, decrypted_backup_file)
                         result.append((decrypt(row[0]), decrypt(row[2])))
                 except Exception as e:
                     print(f"Error decrypting restore code: {e}")
@@ -376,32 +362,28 @@ class GetData:
 
     def get_all_system_admins(self) -> list[tuple]:
         with sqlite3.connect(self.db_path) as connection:
-            # Get all users and filter in memory
             query = "SELECT UserID, FirstName, LastName, UserName, Role FROM users"
             cursor = connection.cursor()
             cursor.execute(query)
             rows = cursor.fetchall()
             
-            # Filter system admins and decrypt fields
             result = []
             for row in rows:
                 decrypt = self.cryptography.decrypt
                 try:
                     decrypted_role = decrypt(row[4])
                     if decrypted_role == 'system_admin':
-                        # Return (user_id, decrypted_first_name, decrypted_last_name, decrypted_username)
                         result.append((
-                            row[0],  # UserID is not encrypted
-                            decrypt(row[1]),  # FirstName
-                            decrypt(row[2]),  # LastName
-                            decrypt(row[3])   # UserName
+                            row[0],
+                            decrypt(row[1]), 
+                            decrypt(row[2]),
+                            decrypt(row[3])
                         ))
                 except Exception as e:
                     print(f"Error decrypting user data: {e}")
                     continue
                     
-            # Sort by last name
-            result.sort(key=lambda x: x[2])  # Sort by LastName
+            result.sort(key=lambda x: x[2])
             return result
 
     def get_unused_restore_codes_for_admin(self, target_admin_id: str) -> list[tuple[str, str]]:

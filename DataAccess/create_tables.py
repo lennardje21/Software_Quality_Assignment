@@ -4,7 +4,6 @@ import sqlite3, os, sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 def create_tables():
-    # Get the project root directory
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     database_dir = os.path.join(project_root, 'Database')
     database_path = os.path.join(database_dir, 'urbanmobility.db')

@@ -3,7 +3,6 @@ from DataModels.traveller import Traveller
 from DataModels.user import User
 from DataModels.scooter import Scooter
 from Logic.user_logic import UserLogic
-#from DataModels.log import Log # nog niet gebruikt
 import os, sys
 import uuid
 
@@ -17,7 +16,6 @@ def seed():
         Traveller(f"{uuid.uuid4()}", 'Mike', 'Johnson', '01-02-1999', 'Male', 'Oak St', '03', '6789AW', 'ALMERE', 'mike.johnson@example.com', '+31-6-04236485', 'AB3231567', '03-04-2024')
     ]
 
-    # Nog geen password hash en super admin moet hard coded zijn zoals if username.lower() == 'super_admin' and password == 'Admin_123?':
     users = [
         User(f"{uuid.uuid4()}", 'systemadmin', UserLogic.hash_password('systemadminpass'), 'System', 'Admin', 'system_admin', '2024-04-01', 0),
         User(f"{uuid.uuid4()}", 'service', UserLogic.hash_password('servicepass'), 'Service', 'Engineer', 'service_engineer', '2024-04-02', 0),
@@ -42,10 +40,7 @@ def seed():
         )
     ]
 
-    #Logs invoeren
-
     insertdata = InsertData()
-    # Insert dummy data into the database
     for traveller in travellers:
         insertdata.insert_traveller(traveller)
 

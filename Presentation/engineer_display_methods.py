@@ -5,10 +5,10 @@ from Logic.log_logic import LogLogic
 from Logic.user_logic import UserLogic
 from Presentation.general_shared_methods import general_shared_methods
 from Presentation.user_display_methods import user_display_methods
+from Logic.log_logic import LogLogic
 
 class engineer_display_methods:
     
-    from Logic.log_logic import LogLogic  # Ensure this import is at the top
 
     @staticmethod
     def search_engineer_display(user, update_call=False):
@@ -17,7 +17,6 @@ class engineer_display_methods:
         print("|" + "Search for Service Engineer".center(75) + "|")
         print("----------------------------------------------------------------------------")
 
-        # Use prompt_until_valid for search input
         search_key = InputPrompters.prompt_until_valid(
             "Enter a search key (id, name, username, etc.) or type 'exit' to go back: ",
             InputValidators.validate_search_key,
@@ -33,7 +32,6 @@ class engineer_display_methods:
         general_shared_methods.clear_console()
         engineers = UserLogic.search_service_engineers(user, search_key)
 
-        # Determine outcome and log
         if engineers and len(engineers) > 0:
             LogLogic.add_log_to_database(
                 username=user.username,
@@ -64,8 +62,6 @@ class engineer_display_methods:
             time.sleep(2)
             general_shared_methods.clear_console()
             return False
-
-    from Logic.log_logic import LogLogic  # Make sure this is imported at the top
 
     @staticmethod
     def display_add_engineer(user):
@@ -108,7 +104,7 @@ class engineer_display_methods:
                 username=user.username,
                 action="Add Service Engineer",
                 description=f"Attempt to add service engineer '{engineer.username}' failed.",
-                suspicious="Yes"  # You can flag this as suspicious if appropriate
+                suspicious="Yes" 
             )
             print("Failed to add service engineer. Please check your permissions.")
             time.sleep(2)
@@ -121,7 +117,6 @@ class engineer_display_methods:
         print("|" + "Enter Service Engineer Details".center(75) + "|")
         print("----------------------------------------------------------------------------")
 
-        # Username: must be valid format AND unique
         while True:
             username = InputPrompters.prompt_until_valid(
                 "Enter Username: ",
@@ -137,7 +132,6 @@ class engineer_display_methods:
                 continue
             break
 
-        # Password: must meet requirements and be confirmed
         while True:
             password = general_shared_methods.input_password("Enter Password: ").strip()
             if password.lower() == 'exit':
@@ -158,7 +152,6 @@ class engineer_display_methods:
             password = UserLogic.hash_password(password)
             break
 
-        # First Name
         first_name = InputPrompters.prompt_until_valid(
             "Enter First Name: ",
             InputValidators.validate_name,
@@ -167,7 +160,6 @@ class engineer_display_methods:
         if first_name is None:
             return None
 
-        # Last Name
         last_name = InputPrompters.prompt_until_valid(
             "Enter Last Name: ",
             InputValidators.validate_name,
@@ -176,7 +168,6 @@ class engineer_display_methods:
         if last_name is None:
             return None
 
-        # Create engineer object
         engineer = UserLogic.create_service_engineer_object(
             user,
             username,
@@ -186,8 +177,6 @@ class engineer_display_methods:
         )
         return engineer
     
-    from Logic.log_logic import LogLogic  # Ensure this is imported
-
     @staticmethod
     def display_update_engineer(user):
         while True:
@@ -253,11 +242,9 @@ class engineer_display_methods:
     def update_engineer_fully(engineer, user):
         editable_fields = ["username", "first_name", "last_name"]
         
-        # Add role edit option for super admins
         if user.role == "super_admin":
             editable_fields.append("role")
 
-        # Validator functions per field
         validators = {
             "username": lambda val: (
                 InputValidators.validate_safe_string(val) and not UserLogic.username_exists(user, val)
@@ -269,7 +256,6 @@ class engineer_display_methods:
         if "role" in editable_fields:
             validators["role"] = lambda val: val in ["service_engineer", "system_admin"]
 
-        # Error messages per field
         error_messages = {
             "username": "Invalid or already taken username. Only letters, numbers, and underscores allowed.",
             "first_name": "Invalid first name. Only letters and spaces allowed.",
@@ -280,7 +266,7 @@ class engineer_display_methods:
         while True:
             field = engineer_display_methods.prompt_for_engineer_field(engineer, user, editable_fields)
             if field is None:
-                return True  # Exit update process
+                return True 
 
             validator = validators.get(field)
             error_msg = error_messages.get(field, "Invalid input.")
@@ -295,7 +281,6 @@ class engineer_display_methods:
                 time.sleep(1.5)
                 return False
 
-            # Apply update
             setattr(engineer, field, new_value.strip())
             if UserLogic.modify_service_engineer(user, engineer):
                 print(f"Updated {field.replace('_', ' ').title()} for engineer {engineer.username}.")
@@ -318,7 +303,6 @@ class engineer_display_methods:
             print("Editable fields: " + ", ".join(editable_fields))
             print("Enter the field you want to update or type 'exit' to cancel:")
 
-            # NOTE: INPUT FIELD
             field = input("Field to update: ").strip().lower()
             general_shared_methods.clear_console()
 
@@ -334,8 +318,6 @@ class engineer_display_methods:
                 continue
 
             return field
-
-    from Logic.log_logic import LogLogic  # Make sure this is at the top
 
     @staticmethod
     def display_delete_engineer(user):
@@ -378,7 +360,6 @@ class engineer_display_methods:
                 time.sleep(2)
                 continue
 
-            # Confirm deletion
             confirmed = engineer_display_methods.display_delete_engineer_confirm(engineer, user)
             if confirmed:
                 LogLogic.add_log_to_database(

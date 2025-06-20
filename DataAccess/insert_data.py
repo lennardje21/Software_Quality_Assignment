@@ -3,7 +3,6 @@ from DataModels.user import User
 from DataModels.traveller import Traveller
 from DataModels.scooter import Scooter
 from Logic.cryptography import Cryptography
-#from DataModels.log import Log  # Nog niet gebruikt
 
 # Ensure the parent directory is in the Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -119,19 +118,17 @@ class InsertData:
                 cursor.execute(query_select)
                 rows = cursor.fetchall()
                 
-                # Find the matching code after decryption
                 code_id = None
                 for row in rows:
                     decrypted_code = self.cryptography.decrypt(row[1])
                     if decrypted_code == code:
-                        code_id = row[0]  # Found the matching code
+                        code_id = row[0]
                         break
                 
                 if code_id is None:
                     print("No matching unused restore code found.")
                     return False
                 
-                # Now update using the ID which is not encrypted
                 update_query = "UPDATE restore_codes SET used = 1 WHERE id = ?"
                 cursor.execute(update_query, (code_id,))
                 connection.commit()
@@ -145,7 +142,6 @@ class InsertData:
         with sqlite3.connect(self.db_path) as connection:
             cursor = connection.cursor()
             for log_id in log_ids:
-                # 'Yes' needs to be encrypted since the 'seen' column stores encrypted values
                 encrypted_yes = self.cryptography.encrypt('Yes')
                 cursor.execute("UPDATE logs SET seen = ? WHERE id = ?", (encrypted_yes, log_id))
             connection.commit()

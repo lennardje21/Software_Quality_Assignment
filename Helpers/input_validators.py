@@ -3,7 +3,6 @@ import datetime
 
 class InputValidators:
 
-    # Traveller input validation
     @staticmethod
     def validate_name(name: str) -> bool:
         return bool(re.fullmatch(r"[A-Za-zÀ-ÿ\-\' ]{2,}", name.strip()))
@@ -43,7 +42,7 @@ class InputValidators:
 
     @staticmethod
     def validate_mobile_phone(phone: str) -> bool:
-        return bool(re.fullmatch(r"\d{8}", phone.strip()))  # Expects just 8 digits
+        return bool(re.fullmatch(r"\d{8}", phone.strip()))
 
     @staticmethod
     def validate_driving_license_number(license_num: str) -> bool:
@@ -56,15 +55,12 @@ class InputValidators:
     
     @staticmethod
     def validate_search_key(value):
-        # Limit length
         if not value or len(value) > 100:
             return False
-        # Basic sanitization: allow letters, digits, basic symbols
         pattern = r"^[\w\s\-@.']+$"
         return re.match(pattern, value.strip()) is not None
     
 
-    # Scooter input validation
     @staticmethod
     def validate_integer_range(value: str, min_val=0, max_val=999999):
         try:
@@ -87,7 +83,7 @@ class InputValidators:
 
     @staticmethod
     def validate_id(s: str) -> bool:
-        return bool(re.match(r"^[A-Za-z0-9\-_]{1,50}$", s))  # Safe ID format
+        return bool(re.match(r"^[A-Za-z0-9\-_]{1,50}$", s))
 
     @staticmethod
     def validate_percentage(s: str) -> bool:
@@ -122,7 +118,6 @@ class InputValidators:
 
     @staticmethod
     def validate_safe_string(value: str) -> bool:
-        # Only letters, numbers, underscores allowed
         return bool(re.match(r'^[a-zA-Z0-9_]+$', value))
 
     @staticmethod
@@ -135,5 +130,4 @@ class InputValidators:
     
     @staticmethod
     def validate_username(username: str) -> bool:
-        # Letters, numbers, and underscores; 3–30 characters
         return bool(re.fullmatch(r"[a-zA-Z0-9_]{3,30}", username.strip()))

@@ -94,7 +94,7 @@ class admin_display_methods:
                 user.username,
                 "Add Admin Failed",
                 f"Failed to add system administrator '{admin.username}'",
-                suspicious="Yes"  # Could be due to permissions or other errors
+                suspicious="Yes"
             )
             print("Failed to add system administrator. Please check your permissions.")
             time.sleep(2)
@@ -135,7 +135,6 @@ class admin_display_methods:
             else:
                 print(error_msg)
                 time.sleep(2)
-                # No clear_console or return here; allow retry
 
         
         first_name = InputPrompters.prompt_until_valid(
@@ -259,7 +258,6 @@ class admin_display_methods:
             
             general_shared_methods.clear_console()
             if field == "username":
-                # Add username validation using existing method
                 username_passed, error_msg = UserLogic.check_username_requirements(new_value)
                 if not username_passed:
                     print(error_msg)
@@ -273,8 +271,7 @@ class admin_display_methods:
             elif field == "last_name":
                 admin.last_name = new_value
             elif field == "role" and user.role == "super_admin":
-                # Validate the role value
-                #NOTE FIXEN
+
                 valid_roles = ["service_engineer", "system_admin"]
                 if new_value not in valid_roles:
                     print(f"Invalid role '{new_value}'. Valid roles are: {', '.join(valid_roles)}")
@@ -306,7 +303,6 @@ class admin_display_methods:
             print("Editable fields: " + ", ".join(editable_fields))
             print("Enter the field you want to update or type 'exit' to cancel:")
             
-            #NOTE INPUT FIELD
             field = input("Field to update: ").strip().lower()
             general_shared_methods.clear_console()
             
