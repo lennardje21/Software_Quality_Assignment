@@ -33,31 +33,23 @@ class HomeScreen:
             if userInput == "1":
                 username = input("\nUsername: ")
                 password = general_shared_methods.input_password("Password: ")
-                password = UserLogic.hash_password(password)
-                role = HomeScreen.simulate_authentication(username, password)
-
-                if role:
-                    print(f"\nLogin successful! Logged in as {role}.\n")
+                password_hash = UserLogic.hash_password(password)
+                
+                # This now returns the whole user object or None
+                user = UserLogic.authenticate_user(username, password_hash)
+                
+                if user:
+                    print(f"\nLogin successful! Logged in as {user.role}.\n")
                     failed_attempts = 0  # reset attempts
-
-                    # Build User object
-                    user = HomeScreen.get_user_object(username, password)
-
-                    if user:
-                        if user.role == "service_engineer":
-                            ServiceEngineerScreen.home_display(user)
-
-                        elif user.role == "system_admin":
-                            SystemAdminScreen.display(user)
-
-                        elif user.role == "super_admin":
-                            SuperAdminScreen.display(user)
-
-                        else:
-                            print(f"Unknown role: {user.role}")
+                    
+                    if user.role == "service_engineer":
+                        ServiceEngineerScreen.home_display(user)
+                    elif user.role == "system_admin":
+                        SystemAdminScreen.display(user)
+                    elif user.role == "super_admin":
+                        SuperAdminScreen.display(user)
                     else:
-                        print("Error loading user data.")
-
+                        print(f"Unknown role: {user.role}")
                 else:
                     failed_attempts += 1
                     remaining = HomeScreen.MAX_ATTEMPTS - failed_attempts

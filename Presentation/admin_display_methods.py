@@ -217,7 +217,30 @@ class admin_display_methods:
                 continue
             
             general_shared_methods.clear_console()
-            setattr(admin, field, new_value)
+            if field == "username":
+                # Add username validation using existing method
+                username_passed, error_msg = UserLogic.check_username_requirements(new_value)
+                if not username_passed:
+                    print(error_msg)
+                    time.sleep(2)
+                    general_shared_methods.clear_console()
+                    continue
+                
+                admin.username = new_value
+            elif field == "first_name":
+                admin.first_name = new_value
+            elif field == "last_name":
+                admin.last_name = new_value
+            elif field == "role" and user.role == "super_admin":
+                # Validate the role value
+                #NOTE FIXEN
+                valid_roles = ["service_engineer", "system_admin"]
+                if new_value not in valid_roles:
+                    print(f"Invalid role '{new_value}'. Valid roles are: {', '.join(valid_roles)}")
+                    time.sleep(2)
+                    general_shared_methods.clear_console()
+                    continue
+                admin.role = new_value
             
             if UserLogic.modify_system_admin(user, admin):
                 print(f"Updated {field.replace('_', ' ').title()} for administrator {admin.username}.")

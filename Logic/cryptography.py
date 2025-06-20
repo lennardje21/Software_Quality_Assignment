@@ -1,5 +1,4 @@
 from cryptography.fernet import Fernet
-from DataAccess.get_data import GetData
 
 
 class Cryptography:
