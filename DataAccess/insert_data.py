@@ -88,10 +88,10 @@ class InsertData:
             with sqlite3.connect(self.db_path) as connection:
                 query = '''
                     INSERT INTO logs (username, action, description, suspicious, seen, timestamp)
-                    VALUES (?, ?, ?, ?, 'No', ?)
+                    VALUES (?, ?, ?, ?, ?, ?)
                 '''
                 cursor = connection.cursor()
-                cursor.execute(query, (self.cryptography.encrypt(username), self.cryptography.encrypt(action), self.cryptography.encrypt(description), self.cryptography.encrypt(suspicious), self.cryptography.encrypt(timestamp)))
+                cursor.execute(query, (self.cryptography.encrypt(username), self.cryptography.encrypt(action), self.cryptography.encrypt(description), self.cryptography.encrypt(suspicious), self.cryptography.encrypt("no"), self.cryptography.encrypt(timestamp)))
             return True
         except Exception as e:
             print(f"Error inserting log: {e}")

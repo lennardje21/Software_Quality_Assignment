@@ -80,8 +80,8 @@ def create_tables():
         username TEXT NOT NULL,
         action TEXT NOT NULL,
         description TEXT NOT NULL,
-        suspicious TEXT CHECK(suspicious IN ('Yes', 'No')) DEFAULT 'No',
-        seen TEXT CHECK(seen IN ('Yes', 'No')) DEFAULT 'No',
+        suspicious TEXT DEFAULT 'No',
+        seen TEXT DEFAULT 'No',
         timestamp TEXT NOT NULL
     );
     '''

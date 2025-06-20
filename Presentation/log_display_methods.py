@@ -26,8 +26,6 @@ class log_display_methods:
 
         input("\nPress Enter to return...")
 
-
-
     @staticmethod
     def display_unread_suspicious_logs(user):
         general_shared_methods.clear_console()
