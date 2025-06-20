@@ -4,7 +4,7 @@ from DataModels.user import User
 from DataAccess.insert_data import InsertData
 from DataAccess.get_data import GetData
 from DataAccess.delete_data import DeleteData
-import uuid, time, re, hashlib
+import uuid, time, re, hashlib, string, random
 
 
 class UserLogic:
@@ -183,6 +183,50 @@ class UserLogic:
 
         # 4) All good
         return True, ""
+    @staticmethod
+    def generate_temporary_password(length=12):
+
+        lower = string.ascii_lowercase
+        upper = string.ascii_uppercase
+        digits = string.digits
+        special = "~!@#$%&_-+=`|\\(){}[]:;'<>,.?/"
+
+        # Ensure at least one of each
+        password_chars = [
+            random.choice(lower),
+            random.choice(upper),
+            random.choice(digits),
+            random.choice(special),
+        ]
+
+        # Fill the rest
+        all_chars = lower + upper + digits + special
+        password_chars += random.choices(all_chars, k=length - 4)
+
+        # Shuffle to avoid predictable sequences
+        random.shuffle(password_chars)
+
+        return ''.join(password_chars)
+    @staticmethod
+    def set_temporary_password(user: User, target_user: User, new_password: str):
+        if user.is_authorized("system_admin") or user.is_authorized("super_admin"):
+            target_user.password_hash = new_password
+            target_user.must_change_password = 1
+            insertData = InsertData()
+            insertData.insert_user(target_user)
+            return True
+        else:
+            return False
+    
+    @staticmethod
+    def reset_password_upon_login_successful(user: User):
+        if user.must_change_password == 1:
+            user.must_change_password = 0
+            insertData = InsertData()
+            insertData.insert_user(user)
+            return True
+        else:
+            return False
 
 
     @staticmethod
@@ -226,8 +270,8 @@ class UserLogic:
             return False
 
     @staticmethod
-    def modify_system_admin(user: User, admin: User):
-        if user.is_authorized("super_admin"):
+    def modify_system_admin(user: User, admin: User, own_account: bool = False):
+        if user.is_authorized("super_admin") or own_account:
             insertData = InsertData()
             insertData.insert_user(admin)
             return True
@@ -235,8 +279,8 @@ class UserLogic:
             return False
 
     @staticmethod
-    def delete_system_admin(user: User, admin_id: str):
-        if user.is_authorized("super_admin"):
+    def delete_system_admin(user: User, admin_id: str, own_account: bool = False):
+        if user.is_authorized("super_admin") or own_account:
             deleteData = DeleteData()
             deleteData.delete_user(admin_id)
             return True

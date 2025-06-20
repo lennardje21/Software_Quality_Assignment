@@ -5,7 +5,7 @@ from DataModels.traveller import Traveller
 from DataAccess.insert_data import InsertData
 from DataAccess.get_data import GetData
 from DataAccess.delete_data import DeleteData
-import uuid
+import uuid, datetime
 
 
 class TravellerLogic:
@@ -54,8 +54,6 @@ class TravellerLogic:
 
     @staticmethod
     def create_traveller_from_input() -> Traveller | None:
-        import datetime
-        from Presentation.general_shared_methods import general_shared_methods
 
         try:
             print("Please enter traveller details (leave blank to cancel):")
